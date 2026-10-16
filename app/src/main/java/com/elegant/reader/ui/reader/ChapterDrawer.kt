@@ -30,6 +30,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -38,9 +39,6 @@ import androidx.compose.ui.unit.sp
 import com.elegant.reader.parse.Chapter
 import com.elegant.reader.ui.animation.Motion
 import com.elegant.reader.ui.clickableNoIndication
-import com.elegant.reader.ui.theme.TextPrimary
-import com.elegant.reader.ui.theme.TextSecondary
-import com.elegant.reader.ui.theme.Terracotta
 
 /**
  * 目录抽屉：从左侧滑出，显示章节列表，点击跳转。
@@ -85,7 +83,15 @@ fun ChapterDrawer(
                 .width(300.dp)
                 .shadow(12.dp, RoundedCornerShape(topEnd = 20.dp, bottomEnd = 20.dp))
                 .clip(RoundedCornerShape(topEnd = 20.dp, bottomEnd = 20.dp))
-                .background(Color(0xFFFDFAF5))
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            Color(0xFF4A3322),
+                            Color(0xFF5C3A28),
+                            Color(0xFF4A3322)
+                        )
+                    )
+                )
                 .statusBarsPadding()
         ) {
             // 标题栏
@@ -96,14 +102,14 @@ fun ChapterDrawer(
             ) {
                 Text(
                     text = "目录",
-                    color = TextPrimary,
+                    color = Color(0xFFF5EFE0),
                     fontSize = 22.sp,
                     fontWeight = FontWeight.Bold
                 )
                 Spacer(Modifier.height(4.dp))
                 Text(
                     text = "共 ${chapters.size} 章",
-                    color = TextSecondary,
+                    color = Color(0xFFF5EFE0).copy(alpha = 0.6f),
                     fontSize = 13.sp
                 )
             }
@@ -126,7 +132,7 @@ fun ChapterDrawer(
                                 }
                             )
                             .background(
-                                if (isCurrent) Color(0xFFF3E8DC)
+                                if (isCurrent) Color(0xFF6B4A35)
                                 else Color.Transparent
                             )
                             .padding(horizontal = 20.dp, vertical = 14.dp),
@@ -139,7 +145,7 @@ fun ChapterDrawer(
                                     .width(3.dp)
                                     .height(18.dp)
                                     .clip(RoundedCornerShape(2.dp))
-                                    .background(Terracotta)
+                                    .background(Color(0xFFD9A84E))
                             )
                             Spacer(Modifier.width(10.dp))
                         } else {
@@ -147,7 +153,7 @@ fun ChapterDrawer(
                         }
                         Text(
                             text = chapter.title,
-                            color = if (isCurrent) Terracotta else TextPrimary,
+                            color = if (isCurrent) Color(0xFFD9A84E) else Color(0xFFF5EFE0).copy(alpha = 0.8f),
                             fontSize = 15.sp,
                             fontWeight = if (isCurrent) FontWeight.SemiBold else FontWeight.Normal,
                             maxLines = 1,
