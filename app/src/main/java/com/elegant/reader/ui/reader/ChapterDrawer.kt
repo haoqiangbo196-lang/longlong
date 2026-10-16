@@ -30,7 +30,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -83,15 +82,7 @@ fun ChapterDrawer(
                 .width(300.dp)
                 .shadow(12.dp, RoundedCornerShape(topEnd = 20.dp, bottomEnd = 20.dp))
                 .clip(RoundedCornerShape(topEnd = 20.dp, bottomEnd = 20.dp))
-                .background(
-                    Brush.verticalGradient(
-                        colors = listOf(
-                            Color(0xFF4A3322),
-                            Color(0xFF5C3A28),
-                            Color(0xFF4A3322)
-                        )
-                    )
-                )
+                .background(Color(0xFFFAF4E8))
                 .statusBarsPadding()
         ) {
             // 标题栏
@@ -102,14 +93,14 @@ fun ChapterDrawer(
             ) {
                 Text(
                     text = "目录",
-                    color = Color(0xFFF5EFE0),
+                    color = Color(0xFF2A2A26),
                     fontSize = 22.sp,
                     fontWeight = FontWeight.Bold
                 )
                 Spacer(Modifier.height(4.dp))
                 Text(
                     text = "共 ${chapters.size} 章",
-                    color = Color(0xFFF5EFE0).copy(alpha = 0.6f),
+                    color = Color(0xFF8A857A),
                     fontSize = 13.sp
                 )
             }
@@ -132,7 +123,7 @@ fun ChapterDrawer(
                                 }
                             )
                             .background(
-                                if (isCurrent) Color(0xFF6B4A35)
+                                if (isCurrent) Color(0xFFEFF0E4)
                                 else Color.Transparent
                             )
                             .padding(horizontal = 20.dp, vertical = 14.dp),
@@ -145,7 +136,7 @@ fun ChapterDrawer(
                                     .width(3.dp)
                                     .height(18.dp)
                                     .clip(RoundedCornerShape(2.dp))
-                                    .background(Color(0xFFD9A84E))
+                                    .background(Color(0xFF6C8977))
                             )
                             Spacer(Modifier.width(10.dp))
                         } else {
@@ -153,7 +144,7 @@ fun ChapterDrawer(
                         }
                         Text(
                             text = chapter.title,
-                            color = if (isCurrent) Color(0xFFD9A84E) else Color(0xFFF5EFE0).copy(alpha = 0.8f),
+                            color = if (isCurrent) Color(0xFF4A6A56) else Color(0xFF3A3A34),
                             fontSize = 15.sp,
                             fontWeight = if (isCurrent) FontWeight.SemiBold else FontWeight.Normal,
                             maxLines = 1,
