@@ -12,6 +12,8 @@ import androidx.compose.animation.scaleIn
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Row
@@ -46,6 +48,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.elegant.reader.reader.Page
+import com.elegant.reader.reader.PageTurnMode
 import com.elegant.reader.reader.ReaderSettingsStore
 import com.elegant.reader.reader.ReaderViewModel
 import com.elegant.reader.ui.animation.Motion
@@ -68,10 +71,14 @@ fun ReaderScreen(
     val currentChapterIndex by viewModel.currentChapterIndex.collectAsState()
     val currentPageIndex by viewModel.currentPageIndex.collectAsState()
     val loading by viewModel.loading.collectAsState()
+    val typeface by viewModel.typeface.collectAsState()
 
     var showMenu by remember { mutableStateOf(false) }
     var showSettings by remember { mutableStateOf(false) }
     var showToc by remember { mutableStateOf(false) }
+
+    // 翻页方向（供动画判断），true=向后翻，false=向前翻
+    var pageTurnForward by remember { mutableStateOf(true) }
 
     val context = LocalView.current.context
     val settingsStore = remember { ReaderSettingsStore(context) }
@@ -94,10 +101,35 @@ fun ReaderScreen(
         onDispose { viewModel.saveProgress() }
     }
 
+    // 音量键翻页（通过 MainActivity.dispatchKeyEvent 拦截 + 单例桥接）
+    DisposableEffect(Unit) {
+        com.elegant.reader.reader.VolumeKeyDispatcher.onVolumeDown = {
+            pageTurnForward = true
+            viewModel.nextPage()
+        }
+        com.elegant.reader.reader.VolumeKeyDispatcher.onVolumeUp = {
+            pageTurnForward = false
+            viewModel.prevPage()
+        }
+        onDispose {
+            com.elegant.reader.reader.VolumeKeyDispatcher.clear()
+        }
+    }
+
     val density = LocalDensity.current.density
     val theme = settings.theme
     val backgroundColor = Color(theme.background)
     val textColor = Color(theme.textColor)
+
+    // 统一的翻页动作，同时记录方向
+    val doNextPage: () -> Unit = {
+        pageTurnForward = true
+        viewModel.nextPage()
+    }
+    val doPrevPage: () -> Unit = {
+        pageTurnForward = false
+        viewModel.prevPage()
+    }
 
     BoxWithConstraints(
         modifier = Modifier
@@ -124,22 +156,54 @@ fun ReaderScreen(
                     top = settings.pageMarginTopDp.dp + 40.dp,
                     bottom = settings.pageMarginBottomDp.dp + 24.dp
                 )
-                .pointerInput(currentChapterIndex, currentPageIndex, showMenu) {
+                .pointerInput(currentChapterIndex, currentPageIndex, showMenu, settings.pageTurnMode) {
+                    // 点击翻页（左 1/3 上一页，右 1/3 下一页，中间出菜单）
                     detectTapGestures(
                         onTap = { offset ->
-                            // 菜单已打开：点任意位置关闭菜单
                             if (showMenu) {
                                 showMenu = false
                                 return@detectTapGestures
                             }
                             val width = size.width.toFloat()
                             when {
-                                offset.x < width / 3 -> viewModel.prevPage()
-                                offset.x > width * 2 / 3 -> viewModel.nextPage()
+                                offset.x < width / 3 -> doPrevPage()
+                                offset.x > width * 2 / 3 -> doNextPage()
                                 else -> showMenu = true
                             }
                         }
                     )
+                }
+                .pointerInput(currentChapterIndex, currentPageIndex, showMenu, settings.pageTurnMode) {
+                    // 滑动翻页：左右滑动（或 SCROLL 模式上下滑动）
+                    if (settings.pageTurnMode == PageTurnMode.SCROLL) {
+                        var totalDrag = 0f
+                        detectVerticalDragGestures(
+                            onDragEnd = {
+                                if (totalDrag > 80f) doPrevPage()
+                                else if (totalDrag < -80f) doNextPage()
+                                totalDrag = 0f
+                            },
+                            onDragCancel = { totalDrag = 0f },
+                            onVerticalDrag = { change, dragAmount ->
+                                change.consume()
+                                totalDrag += dragAmount
+                            }
+                        )
+                    } else {
+                        var totalDrag = 0f
+                        detectHorizontalDragGestures(
+                            onDragEnd = {
+                                if (totalDrag > 80f) doPrevPage()
+                                else if (totalDrag < -80f) doNextPage()
+                                totalDrag = 0f
+                            },
+                            onDragCancel = { totalDrag = 0f },
+                            onHorizontalDrag = { change, dragAmount ->
+                                change.consume()
+                                totalDrag += dragAmount
+                            }
+                        )
+                    }
                 }
         ) {
             if (loading) {
@@ -150,64 +214,97 @@ fun ReaderScreen(
                 AnimatedContent(
                     targetState = currentPageIndex to currentChapterIndex,
                     transitionSpec = {
-                        val forward = targetState.first > initialState.first ||
-                                targetState.second > initialState.second
+                        val forward = pageTurnForward
                         when (settings.pageTurnMode) {
-                            com.elegant.reader.reader.PageTurnMode.SCROLL -> {
-                                // 上下滚动：垂直滑动
+                            PageTurnMode.SCROLL -> {
                                 val slide = if (forward) 1 else -1
                                 (slideInVertically(
                                     initialOffsetY = { fullHeight -> fullHeight * slide },
-                                    animationSpec = tween(350, easing = Motion.Standard)
+                                    animationSpec = tween(300, easing = Motion.Standard)
                                 ) + fadeIn(tween(200, easing = Motion.Standard)))
                                     .togetherWith(
                                         slideOutVertically(
                                             targetOffsetY = { fullHeight -> -fullHeight * slide / 3 },
-                                            animationSpec = tween(350, easing = Motion.Standard)
+                                            animationSpec = tween(300, easing = Motion.Standard)
                                         ) + fadeOut(tween(180, easing = Motion.Accelerate))
                                     )
                             }
 
-                            com.elegant.reader.reader.PageTurnMode.COVER -> {
-                                // 覆盖翻页：新页从右滑入完全覆盖，旧页原地淡出
-                                (slideInHorizontally(
-                                    initialOffsetX = { fullWidth -> fullWidth },
-                                    animationSpec = tween(320, easing = Motion.PageTurn)
-                                ) + fadeIn(tween(200, easing = Motion.Standard)))
-                                    .togetherWith(
-                                        fadeOut(tween(200, easing = Motion.Accelerate))
-                                    )
-                            }
-
-                            else -> {
-                                // 仿真 / 滑动：左右滑动（仿真带轻微缩放）
-                                val scale = if (settings.pageTurnMode == com.elegant.reader.reader.PageTurnMode.SIMULATION) 0.96f else 1f
+                            PageTurnMode.COVER -> {
                                 if (forward) {
                                     (slideInHorizontally(
                                         initialOffsetX = { fullWidth -> fullWidth },
-                                        animationSpec = tween(380, easing = Motion.PageTurn)
-                                    ) + scaleIn(
-                                        initialScale = scale,
-                                        animationSpec = tween(380, easing = Motion.PageTurn)
-                                    ) + fadeIn(tween(240, easing = Motion.Standard)))
+                                        animationSpec = tween(300, easing = Motion.PageTurn)
+                                    ) + fadeIn(tween(200, easing = Motion.Standard)))
+                                        .togetherWith(
+                                            fadeOut(tween(200, easing = Motion.Accelerate))
+                                        )
+                                } else {
+                                    (slideInHorizontally(
+                                        initialOffsetX = { fullWidth -> -fullWidth },
+                                        animationSpec = tween(300, easing = Motion.PageTurn)
+                                    ) + fadeIn(tween(200, easing = Motion.Standard)))
+                                        .togetherWith(
+                                            fadeOut(tween(200, easing = Motion.Accelerate))
+                                        )
+                                }
+                            }
+
+                            PageTurnMode.SLIDE -> {
+                                if (forward) {
+                                    (slideInHorizontally(
+                                        initialOffsetX = { fullWidth -> fullWidth },
+                                        animationSpec = tween(320, easing = Motion.Standard)
+                                    ) + fadeIn(tween(200, easing = Motion.Standard)))
                                         .togetherWith(
                                             slideOutHorizontally(
-                                                targetOffsetX = { fullWidth -> -fullWidth / 3 },
-                                                animationSpec = tween(380, easing = Motion.PageTurn)
+                                                targetOffsetX = { fullWidth -> -fullWidth },
+                                                animationSpec = tween(320, easing = Motion.Standard)
                                             ) + fadeOut(tween(200, easing = Motion.Accelerate))
                                         )
                                 } else {
                                     (slideInHorizontally(
                                         initialOffsetX = { fullWidth -> -fullWidth },
-                                        animationSpec = tween(380, easing = Motion.PageTurn)
+                                        animationSpec = tween(320, easing = Motion.Standard)
+                                    ) + fadeIn(tween(200, easing = Motion.Standard)))
+                                        .togetherWith(
+                                            slideOutHorizontally(
+                                                targetOffsetX = { fullWidth -> fullWidth },
+                                                animationSpec = tween(320, easing = Motion.Standard)
+                                            ) + fadeOut(tween(200, easing = Motion.Accelerate))
+                                        )
+                                }
+                            }
+
+                            else -> {
+                                // 仿真翻页：带缩放 + 阴影感的左右滑动
+                                val scale = 0.94f
+                                if (forward) {
+                                    (slideInHorizontally(
+                                        initialOffsetX = { fullWidth -> fullWidth },
+                                        animationSpec = tween(360, easing = Motion.PageTurn)
                                     ) + scaleIn(
                                         initialScale = scale,
-                                        animationSpec = tween(380, easing = Motion.PageTurn)
+                                        animationSpec = tween(360, easing = Motion.PageTurn)
+                                    ) + fadeIn(tween(240, easing = Motion.Standard)))
+                                        .togetherWith(
+                                            slideOutHorizontally(
+                                                targetOffsetX = { fullWidth -> -fullWidth / 3 },
+                                                animationSpec = tween(360, easing = Motion.PageTurn)
+                                            ) + fadeOut(tween(200, easing = Motion.Accelerate))
+                                        )
+                                } else {
+                                    (slideInHorizontally(
+                                        initialOffsetX = { fullWidth -> -fullWidth },
+                                        animationSpec = tween(360, easing = Motion.PageTurn)
+                                    ) + scaleIn(
+                                        initialScale = scale,
+                                        animationSpec = tween(360, easing = Motion.PageTurn)
                                     ) + fadeIn(tween(240, easing = Motion.Standard)))
                                         .togetherWith(
                                             slideOutHorizontally(
                                                 targetOffsetX = { fullWidth -> fullWidth / 3 },
-                                                animationSpec = tween(380, easing = Motion.PageTurn)
+                                                animationSpec = tween(360, easing = Motion.PageTurn)
                                             ) + fadeOut(tween(200, easing = Motion.Accelerate))
                                         )
                                 }
@@ -216,15 +313,15 @@ fun ReaderScreen(
                     },
                     label = "pageTurn",
                     modifier = Modifier.fillMaxSize(),
-                    contentKey = { it.first }
+                    contentKey = { it.first to it.second }
                 ) { (pageIndex, chapterIndex) ->
                     val pages = viewModel.pages.value
                     val page = pages.getOrNull(pageIndex) ?: Page(0, emptyList())
                     TextPageCanvas(
                         page = page,
-                        settings = settings,
+                        typeface = typeface,
                         textColor = textColor,
-                        density = density,
+                        textSizePx = settings.fontSizeSp * density,
                         modifier = Modifier.fillMaxSize()
                     )
                 }
