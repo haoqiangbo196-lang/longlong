@@ -122,8 +122,10 @@ class ReaderViewModel(application: Application) : AndroidViewModel(application) 
 
         paginateJob = viewModelScope.launch {
             val pages = withContext(Dispatchers.Default) {
+                // 章节标题放在每章开头显示（用户要求：跳章/跨章时能看到第几章和章节名）
+                val fullText = chapter.title + "\n\n" + chapter.content
                 paginator.paginate(
-                    text = chapter.content,
+                    text = fullText,
                     settings = settings,
                     pageWidthPx = pageWidthPx,
                     pageHeightPx = pageHeightPx,
