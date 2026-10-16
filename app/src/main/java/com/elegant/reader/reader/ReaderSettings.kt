@@ -2,15 +2,20 @@ package com.elegant.reader.reader
 
 /**
  * 阅读排版设置，控制字体、字号、行距、段距、页边距等。
+ *
+ * 行距采用「额外行距」模型（参考 Legado）：
+ * lineSpacingExtraSp 表示在行高之外额外增加的行距（以 sp 计），
+ * 实际渲染像素 = lineSpacingExtraSp / 10 * density。
  */
 data class ReaderSettings(
     val fontSizeSp: Float = 18f,
-    val lineHeightMultiplier: Float = 1.6f,
+    val lineSpacingExtraSp: Float = 8f,
     val paragraphSpacing: Float = 8f,
     val pageMarginHorizontalDp: Float = 20f,
     val pageMarginTopDp: Float = 16f,
     val pageMarginBottomDp: Float = 16f,
     val fontFamily: FontFamilyOption = FontFamilyOption.DEFAULT,
+    val customFontPath: String = "",
     val theme: ReaderTheme = ReaderTheme.PAPER,
     val pageTurnMode: PageTurnMode = PageTurnMode.SIMULATION
 )
