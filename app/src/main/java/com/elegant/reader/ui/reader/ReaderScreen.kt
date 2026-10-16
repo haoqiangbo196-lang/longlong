@@ -27,6 +27,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -58,12 +59,12 @@ fun ReaderScreen(
     onBack: () -> Unit,
     viewModel: ReaderViewModel = viewModel()
 ) {
-    val settings by viewModel.settings
-    val book by viewModel.book
-    val chapters by viewModel.chapters
-    val currentChapterIndex by viewModel.currentChapterIndex
-    val currentPageIndex by viewModel.currentPageIndex
-    val loading by viewModel.loading
+    val settings by viewModel.settings.collectAsState()
+    val book by viewModel.book.collectAsState()
+    val chapters by viewModel.chapters.collectAsState()
+    val currentChapterIndex by viewModel.currentChapterIndex.collectAsState()
+    val currentPageIndex by viewModel.currentPageIndex.collectAsState()
+    val loading by viewModel.loading.collectAsState()
 
     var showMenu by remember { mutableStateOf(false) }
     var showSettings by remember { mutableStateOf(false) }
@@ -154,30 +155,31 @@ fun ReaderScreen(
                                 targetState.second > initialState.second
                         if (forward) {
                             (slideInHorizontally(
-                                initialOffsetX = { it },
+                                initialOffsetX = { fullWidth -> fullWidth },
                                 animationSpec = tween(380, easing = Motion.PageTurn)
                             ) + fadeIn(tween(240, easing = Motion.Standard)))
                                 .togetherWith(
                                     slideOutHorizontally(
-                                        targetOffsetX = { -it / 3 },
+                                        targetOffsetX = { fullWidth -> -fullWidth / 3 },
                                         animationSpec = tween(380, easing = Motion.PageTurn)
                                     ) + fadeOut(tween(200, easing = Motion.Accelerate))
                                 )
                         } else {
                             (slideInHorizontally(
-                                initialOffsetX = { -it },
+                                initialOffsetX = { fullWidth -> -fullWidth },
                                 animationSpec = tween(380, easing = Motion.PageTurn)
                             ) + fadeIn(tween(240, easing = Motion.Standard)))
                                 .togetherWith(
                                     slideOutHorizontally(
-                                        targetOffsetX = { it / 3 },
+                                        targetOffsetX = { fullWidth -> fullWidth / 3 },
                                         animationSpec = tween(380, easing = Motion.PageTurn)
                                     ) + fadeOut(tween(200, easing = Motion.Accelerate))
                                 )
                         }
                     },
                     label = "pageTurn",
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier.fillMaxSize(),
+                    contentKey = { it.first }
                 ) { (pageIndex, chapterIndex) ->
                     val chapter = chapters.getOrNull(chapterIndex)
                     val pages = viewModel.pages.value
