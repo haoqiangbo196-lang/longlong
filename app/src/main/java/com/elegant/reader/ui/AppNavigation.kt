@@ -25,25 +25,33 @@ fun AppNavigation() {
     NavHost(
         navController = navController,
         startDestination = "shelf",
+        // 进入阅读器：从右侧滑入
         enterTransition = {
-            fadeIn(tween(260, easing = Motion.Standard)) +
-                    slideInHorizontally(
-                        initialOffsetX = { it / 4 },
-                        animationSpec = tween(320, easing = Motion.Standard)
-                    )
+            slideInHorizontally(
+                initialOffsetX = { it },
+                animationSpec = tween(360, easing = Motion.Standard)
+            ) + fadeIn(tween(260, easing = Motion.Standard))
         },
+        // 离开书架：向左滑出
         exitTransition = {
-            fadeOut(tween(200, easing = Motion.Accelerate)) +
-                    slideOutHorizontally(
-                        targetOffsetX = { -it / 4 },
-                        animationSpec = tween(260, easing = Motion.Standard)
-                    )
+            slideOutHorizontally(
+                targetOffsetX = { -it / 3 },
+                animationSpec = tween(360, easing = Motion.Standard)
+            ) + fadeOut(tween(260, easing = Motion.Accelerate))
         },
+        // 返回书架：从左侧滑入（明显动画，不再生硬）
         popEnterTransition = {
-            fadeIn(tween(260, easing = Motion.Standard))
+            slideInHorizontally(
+                initialOffsetX = { -it / 3 },
+                animationSpec = tween(340, easing = Motion.Standard)
+            ) + fadeIn(tween(260, easing = Motion.Standard))
         },
+        // 退出阅读器：向右滑出
         popExitTransition = {
-            fadeOut(tween(200, easing = Motion.Accelerate))
+            slideOutHorizontally(
+                targetOffsetX = { it },
+                animationSpec = tween(340, easing = Motion.Standard)
+            ) + fadeOut(tween(260, easing = Motion.Accelerate))
         }
     ) {
         composable("shelf") {
