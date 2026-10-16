@@ -45,16 +45,25 @@ val SuccessGreen = Color(0xFF6B8E5A)
 val WarnAmber = Color(0xFFD9A84E)
 val DangerRed = Color(0xFFC05B4D)
 
-// 书架卡片封面渐变（按书籍生成，锤子拟物书封配色）
+// 书架卡片封面渐变（按书籍生成，取自设计稿的书封色系：低饱和、雅致）
 val CoverGradients = listOf(
-    listOf(Color(0xFFB5734D), Color(0xFF7A4A2E)),
-    listOf(Color(0xFF4A5B6E), Color(0xFF2F3E4D)),
-    listOf(Color(0xFF6B8E5A), Color(0xFF4A6B3D)),
-    listOf(Color(0xFF9B6B8E), Color(0xFF6E4A66)),
-    listOf(Color(0xFFD9A84E), Color(0xFFB5822E)),
-    listOf(Color(0xFF5A8EA8), Color(0xFF3A657A)),
-    listOf(Color(0xFFA85A5A), Color(0xFF7A3D3D)),
-    listOf(Color(0xFF5A9E8E), Color(0xFF3A7266)),
-    listOf(Color(0xFF8A5A3B), Color(0xFF5C3A28)),
-    listOf(Color(0xFF7B6A9E), Color(0xFF53486E)),
+    listOf(Color(0xFF3D5248), Color(0xFF26352D)),  // 墨绿
+    listOf(Color(0xFF8FB0CC), Color(0xFF5F87A8)),  // 天蓝
+    listOf(Color(0xFF2C3A50), Color(0xFF1A2436)),  // 深蓝
+    listOf(Color(0xFFCFC8B8), Color(0xFFA8A091)),  // 米灰
+    listOf(Color(0xFF5A7C63), Color(0xFF3D5A46)),  // 翠绿
+    listOf(Color(0xFF4A3C33), Color(0xFF2E251F)),  // 深褐
+    listOf(Color(0xFF3A4C66), Color(0xFF24324A)),  // 藏蓝
+    listOf(Color(0xFF4A6E62), Color(0xFF2F4A40)),  // 青绿
+    listOf(Color(0xFF8A7A64), Color(0xFF66584A)),  // 灰褐
+    listOf(Color(0xFF6E5A7A), Color(0xFF4A3C55)),  // 黛紫
 )
+
+// 主界面配色（取自设计稿）
+val PageBg = Color(0xFFFAF4E8)       // 页面背景米色
+val CardCream = Color(0xFFFDF9EE)    // 卡片米白
+val InkDark = Color(0xFF2A2A26)      // 深墨文字
+val InkGray = Color(0xFF8A857A)      // 次要文字
+val GreenMain = Color(0xFF6C8977)    // 墨绿主色（按钮/进度条）
+val GreenLight = Color(0xFFE8EDE5)   // 进度条底色
+val WoodTone = Color(0xFFC9A87A)     // 书封木托
