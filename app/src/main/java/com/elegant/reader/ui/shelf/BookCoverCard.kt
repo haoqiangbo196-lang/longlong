@@ -46,7 +46,7 @@ fun BookCoverCard(
     val gradient = CoverGradients[(book.id % CoverGradients.size).toInt()]
     // 竖排书名（最多 7 字，超出省略）
     val titleChars = remember(book.title) {
-        if (book.title.length > 7) book.title.take(6) + "…" else book.title.toList()
+        if (book.title.length > 7) (book.title.take(6) + "…").toList() else book.title.toList()
     }
 
     Box(
