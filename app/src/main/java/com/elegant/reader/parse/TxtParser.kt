@@ -79,7 +79,7 @@ object TxtParser {
 
         for (line in lines) {
             val trimmed = line.trim()
-            if (isChapterTitle(trimmed)) {
+            if (TocRule.isChapterTitle(trimmed)) {
                 // 新章节开始
                 flush()
                 currentTitle = trimmed
@@ -95,53 +95,5 @@ object TxtParser {
         }
 
         return chapters
-    }
-
-    /**
-     * 判断一行是否为章节标题。覆盖主流书籍的章节格式。
-     */
-    private fun isChapterTitle(line: String): Boolean {
-        if (line.isEmpty() || line.length > 50) return false
-
-        // 1. 第X章 / 第X节 / 第X回 / 第X卷 / 第X部 / 第X篇 / 第X集 / 第X话
-        //    支持中文数字、阿拉伯数字、前导零、空格
-        val cnNum = "[0-9０-９一二三四五六七八九十百千万零两〇]+"
-        val chapterPattern1 = Regex(
-            "^第\\s*$cnNum\\s*[章节回卷部篇集话].{0,40}$"
-        )
-        if (chapterPattern1.matches(line)) return true
-
-        // 2. Chapter X / CHAPTER X / Chap. X（阿拉伯或罗马数字）
-        val chapterPattern2 = Regex(
-            "^(?i)(chapter|chap)\\s*\\.?\\s*[0-9IVXLCDM０-９]+.{0,40}$"
-        )
-        if (chapterPattern2.matches(line)) return true
-
-        // 3. 卷X / 部X / 篇X（中文序号）
-        val chapterPattern3 = Regex(
-            "^[卷部篇集]\\s*[一二三四五六七八九十百千万零〇]+.{0,40}$"
-        )
-        if (chapterPattern3.matches(line)) return true
-
-        // 4. 结构词：序章/序言/楔子/尾声/番外/后记/附录/前言/引子/终章/大结局/结局
-        val chapterPattern4 = Regex(
-            "^(序章|序言|楔子|尾声|终章|大结局|番外|后记|附录|前言|引子|结局).{0,40}$"
-        )
-        if (chapterPattern4.matches(line)) return true
-
-        // 5. 中文序号开头：一、二、三、……（要求后面有标题文字，避免误判正文里的"一、xxx"）
-        val chapterPattern5 = Regex(
-            "^[一二三四五六七八九十百千万零〇]{1,6}[、.．].{1,40}$"
-        )
-        if (chapterPattern5.matches(line)) return true
-
-        // 6. 阿拉伯数字序号：1. / 1、/ 01 / 001 等
-        //    要求：序号后必须有标题文字，且序号不能太长（最多4位），避免误判正文编号
-        val chapterPattern6 = Regex(
-            "^[0-9０-９]{1,4}[、.．]\\s*.{1,40}$"
-        )
-        if (chapterPattern6.matches(line)) return true
-
-        return false
     }
 }
