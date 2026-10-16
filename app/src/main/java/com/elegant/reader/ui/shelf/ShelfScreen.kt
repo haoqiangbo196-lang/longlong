@@ -31,6 +31,7 @@ import androidx.compose.material.icons.rounded.MenuBook
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -64,8 +65,8 @@ fun ShelfScreen(
     onOpenBook: (Long) -> Unit,
     viewModel: ShelfViewModel = viewModel()
 ) {
-    val books by viewModel.books
-    val importing by viewModel.importing
+    val books by viewModel.books.collectAsState()
+    val importing by viewModel.importing.collectAsState()
 
     var showDeleteDialog by remember { mutableStateOf<Book?>(null) }
 
