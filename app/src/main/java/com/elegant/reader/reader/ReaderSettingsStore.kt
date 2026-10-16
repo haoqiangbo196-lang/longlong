@@ -22,8 +22,6 @@ class ReaderSettingsStore(private val context: Context) {
         val marginH = floatPreferencesKey("margin_h")
         val marginTop = floatPreferencesKey("margin_top")
         val marginBottom = floatPreferencesKey("margin_bottom")
-        val fontFamily = stringPreferencesKey("font_family")
-        val customFontPath = stringPreferencesKey("custom_font_path")
         val theme = stringPreferencesKey("theme")
         val pageTurnMode = stringPreferencesKey("page_turn_mode")
     }
@@ -36,16 +34,12 @@ class ReaderSettingsStore(private val context: Context) {
             pageMarginHorizontalDp = prefs[Keys.marginH] ?: 20f,
             pageMarginTopDp = prefs[Keys.marginTop] ?: 16f,
             pageMarginBottomDp = prefs[Keys.marginBottom] ?: 16f,
-            fontFamily = runCatching {
-                FontFamilyOption.valueOf(prefs[Keys.fontFamily] ?: "DEFAULT")
-            }.getOrDefault(FontFamilyOption.DEFAULT),
-            customFontPath = prefs[Keys.customFontPath] ?: "",
             theme = runCatching {
                 ReaderTheme.valueOf(prefs[Keys.theme] ?: "PAPER")
             }.getOrDefault(ReaderTheme.PAPER),
             pageTurnMode = runCatching {
-                PageTurnMode.valueOf(prefs[Keys.pageTurnMode] ?: "SIMULATION")
-            }.getOrDefault(PageTurnMode.SIMULATION)
+                PageTurnMode.valueOf(prefs[Keys.pageTurnMode] ?: "SLIDE")
+            }.getOrDefault(PageTurnMode.SLIDE)
         )
     }
 
@@ -57,8 +51,6 @@ class ReaderSettingsStore(private val context: Context) {
             prefs[Keys.marginH] = settings.pageMarginHorizontalDp
             prefs[Keys.marginTop] = settings.pageMarginTopDp
             prefs[Keys.marginBottom] = settings.pageMarginBottomDp
-            prefs[Keys.fontFamily] = settings.fontFamily.name
-            prefs[Keys.customFontPath] = settings.customFontPath
             prefs[Keys.theme] = settings.theme.name
             prefs[Keys.pageTurnMode] = settings.pageTurnMode.name
         }
