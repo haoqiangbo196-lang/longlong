@@ -1,6 +1,7 @@
 package com.elegant.reader.ui.shelf
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -32,9 +33,9 @@ import com.elegant.reader.data.Book
 import com.elegant.reader.ui.theme.CoverGradients
 
 /**
- * 书籍封面卡片 —— 锤子拟物精装书封。
+ * 书籍封面 —— 古典书卷风。
  *
- * 渐变书封 + 书脊高光 + 上下压暗 + 浮雕标题，营造真实精装书质感。
+ * 竖排书名 + 书脊高光 + 上下压暗 + 底部进度条，像一本立在书架上的真书。
  */
 @Composable
 fun BookCoverCard(
@@ -43,22 +44,27 @@ fun BookCoverCard(
     onClick: () -> Unit
 ) {
     val gradient = CoverGradients[(book.id % CoverGradients.size).toInt()]
+    // 竖排书名（最多 7 字，超出省略）
+    val titleChars = remember(book.title) {
+        if (book.title.length > 7) book.title.take(6) + "…" else book.title.toList()
+    }
 
-    Column(
+    Box(
         modifier = modifier
-            .width(124.dp)
-            .clip(RoundedCornerShape(16.dp))
+            .fillMaxWidth()
+            .height(196.dp)
             .shadow(
-                elevation = 12.dp,
-                shape = RoundedCornerShape(16.dp),
-                ambientColor = Color.Black.copy(alpha = 0.3f),
-                spotColor = Color.Black.copy(alpha = 0.45f)
+                elevation = 10.dp,
+                shape = RoundedCornerShape(topStart = 4.dp, topEnd = 10.dp, bottomEnd = 4.dp, bottomStart = 10.dp),
+                ambientColor = Color.Black.copy(alpha = 0.45f),
+                spotColor = Color.Black.copy(alpha = 0.55f)
             )
+            .clip(RoundedCornerShape(topStart = 4.dp, topEnd = 10.dp, bottomEnd = 4.dp, bottomStart = 10.dp))
             .background(
                 Brush.linearGradient(
                     colors = gradient,
                     start = Offset(0f, 0f),
-                    end = Offset(1240f, 1700f)
+                    end = Offset(900f, 1600f)
                 )
             )
             .clickable(
@@ -67,116 +73,76 @@ fun BookCoverCard(
                 onClick = onClick
             )
     ) {
-        Box(modifier = Modifier.fillMaxWidth().height(168.dp)) {
-            // 书脊高光（左侧亮条）
-            Box(
-                modifier = Modifier
-                    .align(Alignment.CenterStart)
-                    .width(5.dp)
-                    .fillMaxSize()
-                    .background(
-                        Brush.horizontalGradient(
-                            colors = listOf(
-                                Color.White.copy(alpha = 0.35f),
-                                Color.White.copy(alpha = 0.05f)
-                            )
+        // 书脊高光（左缘亮条，像书脊被灯光照亮）
+        Box(
+            modifier = Modifier
+                .align(Alignment.CenterStart)
+                .width(6.dp)
+                .fillMaxSize()
+                .background(
+                    Brush.horizontalGradient(
+                        colors = listOf(
+                            Color.White.copy(alpha = 0.4f),
+                            Color.White.copy(alpha = 0.04f)
                         )
                     )
-            )
-            // 书脊阴影（右侧）
-            Box(
-                modifier = Modifier
-                    .align(Alignment.CenterEnd)
-                    .width(3.dp)
-                    .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.15f))
-            )
-            // 上下压暗，营造内阴影立体感
-            Box(
-                modifier = Modifier
-                    .align(Alignment.TopStart)
-                    .fillMaxSize()
-                    .background(
-                        Brush.verticalGradient(
-                            colors = listOf(
-                                Color.Black.copy(alpha = 0.12f),
-                                Color.Transparent,
-                                Color.Transparent,
-                                Color.Black.copy(alpha = 0.18f)
-                            )
-                        )
-                    )
-            )
-            // 浮雕标题
-            Column(
-                modifier = Modifier
-                    .align(Alignment.Center)
-                    .padding(horizontal = 16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                // 浮雕阴影层（向下偏移的暗色文字）
-                Text(
-                    text = book.title,
-                    color = Color.Black.copy(alpha = 0.35f),
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
-                    maxLines = 3,
-                    overflow = TextOverflow.Ellipsis,
-                    lineHeight = 21.sp,
-                    modifier = Modifier.padding(top = 2.dp)
                 )
-                // 主标题层
+        )
+        // 右缘暗边（背光面）
+        Box(
+            modifier = Modifier
+                .align(Alignment.CenterEnd)
+                .width(4.dp)
+                .fillMaxSize()
+                .background(Color.Black.copy(alpha = 0.22f))
+        )
+        // 上下压暗（内阴影立体感）
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            Color.Black.copy(alpha = 0.18f),
+                            Color.Transparent,
+                            Color.Transparent,
+                            Color.Black.copy(alpha = 0.22f)
+                        )
+                    )
+                )
+        )
+        // 竖排书名
+        Column(
+            modifier = Modifier
+                .align(Alignment.Center)
+                .padding(top = 14.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            titleChars.forEach { ch ->
                 Text(
-                    text = book.title,
+                    text = ch.toString(),
                     color = Color.White,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
-                    maxLines = 3,
-                    overflow = TextOverflow.Ellipsis,
-                    lineHeight = 21.sp,
-                    modifier = Modifier.padding(top = 0.dp)
+                    fontSize = 17.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    lineHeight = 23.sp
                 )
-                if (book.author.isNotBlank()) {
-                    Spacer(Modifier.height(6.dp))
-                    Text(
-                        text = book.author,
-                        color = Color.White.copy(alpha = 0.75f),
-                        fontSize = 11.sp,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
             }
         }
-        // 底部信息条（皮革质感）
-        Row(
+        // 底部进度条
+        Column(
             modifier = Modifier
+                .align(Alignment.BottomCenter)
                 .fillMaxWidth()
-                .background(Color.Black.copy(alpha = 0.28f))
-                .padding(horizontal = 10.dp, vertical = 7.dp),
-            verticalAlignment = Alignment.CenterVertically
+                .background(Color.Black.copy(alpha = 0.30f))
+                .padding(horizontal = 8.dp, vertical = 5.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
                 text = "${(book.progress * 100).toInt()}%",
-                color = Color.White.copy(alpha = 0.9f),
-                fontSize = 10.sp,
+                color = Color.White.copy(alpha = 0.85f),
+                fontSize = 9.sp,
                 fontWeight = FontWeight.Medium
             )
-            Spacer(Modifier.weight(1f))
-            Text(
-                text = formatWords(book.totalWords),
-                color = Color.White.copy(alpha = 0.65f),
-                fontSize = 9.sp
-            )
         }
-    }
-}
-
-private fun formatWords(words: Long): String {
-    return when {
-        words >= 10000 -> "${words / 10000}万字"
-        words >= 1000 -> "${words / 1000}千字"
-        else -> "${words}字"
     }
 }
