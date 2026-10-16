@@ -6,9 +6,11 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.scaleIn
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -39,12 +41,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.elegant.reader.reader.ReaderSettingsStore
 import com.elegant.reader.reader.ReaderViewModel
+import com.elegant.reader.reader.FontFamilyOption
 import com.elegant.reader.ui.animation.Motion
 import com.elegant.reader.ui.clickableNoIndication
 import kotlinx.coroutines.flow.firstOrNull
@@ -120,25 +124,20 @@ fun ReaderScreen(
                     top = settings.pageMarginTopDp.dp + 40.dp,
                     bottom = settings.pageMarginBottomDp.dp + 24.dp
                 )
-                .pointerInput(currentChapterIndex, currentPageIndex) {
+                .pointerInput(currentChapterIndex, currentPageIndex, showMenu) {
                     detectTapGestures(
                         onTap = { offset ->
+                            // 菜单已打开：点任意位置关闭菜单
+                            if (showMenu) {
+                                showMenu = false
+                                return@detectTapGestures
+                            }
                             val width = size.width.toFloat()
                             when {
                                 offset.x < width / 3 -> viewModel.prevPage()
                                 offset.x > width * 2 / 3 -> viewModel.nextPage()
-                                else -> showMenu = !showMenu
+                                else -> showMenu = true
                             }
-                        }
-                    )
-                }
-                .pointerInput(settings.pageTurnMode) {
-                    detectHorizontalDragGestures(
-                        onDragEnd = {
-                            // 滑动翻页：由点击区域之外的滑动触发
-                        },
-                        onHorizontalDrag = { change, dragAmount ->
-                            change.consume()
                         }
                     )
                 }
@@ -153,28 +152,66 @@ fun ReaderScreen(
                     transitionSpec = {
                         val forward = targetState.first > initialState.first ||
                                 targetState.second > initialState.second
-                        if (forward) {
-                            (slideInHorizontally(
-                                initialOffsetX = { fullWidth -> fullWidth },
-                                animationSpec = tween(380, easing = Motion.PageTurn)
-                            ) + fadeIn(tween(240, easing = Motion.Standard)))
-                                .togetherWith(
-                                    slideOutHorizontally(
-                                        targetOffsetX = { fullWidth -> -fullWidth / 3 },
+                        when (settings.pageTurnMode) {
+                            com.elegant.reader.reader.PageTurnMode.SCROLL -> {
+                                // 上下滚动：垂直滑动
+                                val slide = if (forward) 1 else -1
+                                (slideInVertically(
+                                    initialOffsetY = { fullHeight -> fullHeight * slide },
+                                    animationSpec = tween(350, easing = Motion.Standard)
+                                ) + fadeIn(tween(200, easing = Motion.Standard)))
+                                    .togetherWith(
+                                        slideOutVertically(
+                                            targetOffsetY = { fullHeight -> -fullHeight * slide / 3 },
+                                            animationSpec = tween(350, easing = Motion.Standard)
+                                        ) + fadeOut(tween(180, easing = Motion.Accelerate))
+                                    )
+                            }
+
+                            com.elegant.reader.reader.PageTurnMode.COVER -> {
+                                // 覆盖翻页：新页从右滑入完全覆盖，旧页原地淡出
+                                (slideInHorizontally(
+                                    initialOffsetX = { fullWidth -> fullWidth },
+                                    animationSpec = tween(320, easing = Motion.PageTurn)
+                                ) + fadeIn(tween(200, easing = Motion.Standard)))
+                                    .togetherWith(
+                                        fadeOut(tween(200, easing = Motion.Accelerate))
+                                    )
+                            }
+
+                            else -> {
+                                // 仿真 / 滑动：左右滑动（仿真带轻微缩放）
+                                val scale = if (settings.pageTurnMode == com.elegant.reader.reader.PageTurnMode.SIMULATION) 0.96f else 1f
+                                if (forward) {
+                                    (slideInHorizontally(
+                                        initialOffsetX = { fullWidth -> fullWidth },
                                         animationSpec = tween(380, easing = Motion.PageTurn)
-                                    ) + fadeOut(tween(200, easing = Motion.Accelerate))
-                                )
-                        } else {
-                            (slideInHorizontally(
-                                initialOffsetX = { fullWidth -> -fullWidth },
-                                animationSpec = tween(380, easing = Motion.PageTurn)
-                            ) + fadeIn(tween(240, easing = Motion.Standard)))
-                                .togetherWith(
-                                    slideOutHorizontally(
-                                        targetOffsetX = { fullWidth -> fullWidth / 3 },
+                                    ) + scaleIn(
+                                        initialScale = scale,
                                         animationSpec = tween(380, easing = Motion.PageTurn)
-                                    ) + fadeOut(tween(200, easing = Motion.Accelerate))
-                                )
+                                    ) + fadeIn(tween(240, easing = Motion.Standard)))
+                                        .togetherWith(
+                                            slideOutHorizontally(
+                                                targetOffsetX = { fullWidth -> -fullWidth / 3 },
+                                                animationSpec = tween(380, easing = Motion.PageTurn)
+                                            ) + fadeOut(tween(200, easing = Motion.Accelerate))
+                                        )
+                                } else {
+                                    (slideInHorizontally(
+                                        initialOffsetX = { fullWidth -> -fullWidth },
+                                        animationSpec = tween(380, easing = Motion.PageTurn)
+                                    ) + scaleIn(
+                                        initialScale = scale,
+                                        animationSpec = tween(380, easing = Motion.PageTurn)
+                                    ) + fadeIn(tween(240, easing = Motion.Standard)))
+                                        .togetherWith(
+                                            slideOutHorizontally(
+                                                targetOffsetX = { fullWidth -> fullWidth / 3 },
+                                                animationSpec = tween(380, easing = Motion.PageTurn)
+                                            ) + fadeOut(tween(200, easing = Motion.Accelerate))
+                                        )
+                                }
+                            }
                         }
                     },
                     label = "pageTurn",
@@ -190,6 +227,7 @@ fun ReaderScreen(
                             color = textColor,
                             fontSize = settings.fontSizeSp.sp,
                             lineHeight = (settings.fontSizeSp * settings.lineHeightMultiplier).sp,
+                            fontFamily = settings.fontFamily.toComposeFontFamily(),
                             fontWeight = FontWeight.Normal
                         )
                     }
@@ -234,10 +272,9 @@ fun ReaderScreen(
             }
         }
 
-        // 设置面板
-        Box(modifier = Modifier.align(Alignment.BottomCenter)) {
+        // 设置面板（ModalBottomSheet，自带遮罩/下滑/返回键关闭）
+        if (showSettings) {
             ReaderSettingsPanel(
-                visible = showSettings,
                 settings = settings,
                 onSettingsChange = { newSettings ->
                     viewModel.updateSettings(newSettings)
@@ -246,6 +283,14 @@ fun ReaderScreen(
                 onDismiss = { showSettings = false }
             )
         }
+    }
+
+    // 返回键处理：设置面板打开时优先关闭面板，其次关闭菜单
+    androidx.activity.compose.BackHandler(enabled = showSettings) {
+        showSettings = false
+    }
+    androidx.activity.compose.BackHandler(enabled = showMenu && !showSettings) {
+        showMenu = false
     }
 }
 
@@ -291,5 +336,17 @@ private fun ReaderTopBar(
                 .clickableNoIndication(onClick = onToggleSettings)
                 .padding(8.dp)
         )
+    }
+}
+
+/**
+ * 将字体选项映射为 Compose 的 FontFamily。
+ */
+private fun FontFamilyOption.toComposeFontFamily(): FontFamily {
+    return when (this) {
+        FontFamilyOption.DEFAULT -> FontFamily.Default
+        FontFamilyOption.SERIF -> FontFamily.Serif
+        FontFamilyOption.SANS -> FontFamily.SansSerif
+        FontFamilyOption.MONO -> FontFamily.Monospace
     }
 }
