@@ -16,6 +16,7 @@ object EpubParser {
 
             // 2. 解析 OPF 元数据
             val opfContent = readEntry(zip, opfPath)
+                ?: throw IllegalArgumentException("EPUB 结构无效：无法读取 OPF 文件")
             val opfDir = opfPath.substringBeforeLast('/', "")
 
             val metadata = parseOpfMetadata(opfContent)
@@ -103,8 +104,10 @@ object EpubParser {
     }
 
     private fun extractTag(html: String, tag: String): String? {
-        val regex = Regex("<$tag[^>]*>(.*?)</$tag>", RegexOption.IGNORE_CASE or RegexOption.DOT_MATCHES_ALL)
-        return regex.find(html)?.groupValues?.get(1)?.trim()?.replace(Regex("<[^>]+>"), "")?.trim()
+        val regex = Regex("<$tag[^>]*>(.*?)</$tag>", setOf(RegexOption.IGNORE_CASE, RegexOption.DOT_MATCHES_ALL))
+        val match = regex.find(html) ?: return null
+        val group = match.groupValues.getOrNull(1) ?: return null
+        return group.trim().replace(Regex("<[^>]+>"), "").trim()
     }
 
     private fun extractTitle(html: String): String? {
