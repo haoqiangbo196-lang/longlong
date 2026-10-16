@@ -1,11 +1,5 @@
 package com.elegant.reader.ui.reader
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -21,9 +15,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -38,7 +35,6 @@ import com.elegant.reader.reader.FontFamilyOption
 import com.elegant.reader.reader.PageTurnMode
 import com.elegant.reader.reader.ReaderSettings
 import com.elegant.reader.reader.ReaderTheme
-import com.elegant.reader.ui.animation.Motion
 import com.elegant.reader.ui.theme.TextPrimary
 import com.elegant.reader.ui.theme.TextSecondary
 import com.elegant.reader.ui.theme.Terracotta
@@ -46,49 +42,34 @@ import com.elegant.reader.ui.theme.TerracottaLight
 import com.elegant.reader.ui.theme.WarmSurface
 
 /**
- * 阅读设置面板：底部弹出，包含排版与主题调节。
+ * 阅读设置面板：使用 Material3 ModalBottomSheet，
+ * 自带半透明遮罩、下滑关闭、返回键关闭等标准行为。
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReaderSettingsPanel(
-    visible: Boolean,
     settings: ReaderSettings,
     onSettingsChange: (ReaderSettings) -> Unit,
     onDismiss: () -> Unit
 ) {
-    AnimatedVisibility(
-        visible = visible,
-        enter = slideInVertically(
-            initialOffsetY = { it },
-            animationSpec = tween(320, easing = Motion.Bouncy)
-        ) + fadeIn(animationSpec = tween(240, easing = Motion.Standard)),
-        exit = slideOutVertically(
-            targetOffsetY = { it },
-            animationSpec = tween(260, easing = Motion.Accelerate)
-        ) + fadeOut(animationSpec = tween(180))
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState,
+        containerColor = WarmSurface
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
-                .background(WarmSurface)
-                .padding(horizontal = 20.dp, vertical = 16.dp)
+                .padding(horizontal = 20.dp)
+                .padding(bottom = 24.dp)
         ) {
-            // 拖拽指示条
-            Box(
-                modifier = Modifier
-                    .align(Alignment.CenterHorizontally)
-                    .size(width = 40.dp, height = 4.dp)
-                    .clip(CircleShape)
-                    .background(Color(0xFFDDD5C9))
-            )
-            Spacer(Modifier.height(16.dp))
-
             // 字号
             SettingSliderRow(
                 title = "字号",
                 value = settings.fontSizeSp,
                 range = 12f..30f,
-                suffix = "",
                 onValueChange = { onSettingsChange(settings.copy(fontSizeSp = it)) }
             )
 
@@ -97,7 +78,6 @@ fun ReaderSettingsPanel(
                 title = "行间距",
                 value = settings.lineHeightMultiplier,
                 range = 1.2f..2.5f,
-                suffix = "",
                 onValueChange = { onSettingsChange(settings.copy(lineHeightMultiplier = it)) }
             )
 
@@ -106,7 +86,6 @@ fun ReaderSettingsPanel(
                 title = "段间距",
                 value = settings.paragraphSpacing,
                 range = 0f..30f,
-                suffix = "",
                 onValueChange = { onSettingsChange(settings.copy(paragraphSpacing = it)) }
             )
 
@@ -169,8 +148,6 @@ fun ReaderSettingsPanel(
                     )
                 }
             }
-
-            Spacer(Modifier.height(20.dp))
         }
     }
 }
@@ -180,7 +157,6 @@ private fun SettingSliderRow(
     title: String,
     value: Float,
     range: ClosedFloatingPointRange<Float>,
-    suffix: String,
     onValueChange: (Float) -> Unit
 ) {
     Row(
@@ -206,7 +182,7 @@ private fun SettingSliderRow(
             )
         )
         Text(
-            text = "${String.format("%.1f", value)}$suffix",
+            text = String.format("%.1f", value),
             color = TextSecondary,
             fontSize = 13.sp,
             modifier = Modifier.width(48.dp),
@@ -273,12 +249,5 @@ private fun ThemeDot(
                     .background(Color(theme.textColor).copy(alpha = 0.7f))
             )
         }
-        // 边框
-        Box(
-            modifier = Modifier
-                .size(40.dp)
-                .clip(CircleShape)
-                .background(Color.Transparent)
-        )
     }
 }
