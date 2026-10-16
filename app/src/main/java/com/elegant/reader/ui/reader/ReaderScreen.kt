@@ -70,6 +70,8 @@ fun ReaderScreen(
     val currentChapterIndex by viewModel.currentChapterIndex.collectAsState()
     val currentPageIndex by viewModel.currentPageIndex.collectAsState()
     val loading by viewModel.loading.collectAsState()
+    // pages 必须响应式收集：分页是异步的，完成后才能触发页面重组显示文字
+    val pages by viewModel.pages.collectAsState()
 
     var showMenu by remember { mutableStateOf(false) }
     var showSettings by remember { mutableStateOf(false) }
@@ -260,14 +262,24 @@ fun ReaderScreen(
                     modifier = Modifier.fillMaxSize(),
                     contentKey = { it.first to it.second }
                 ) { (pageIndex, chapterIndex) ->
-                    val pages = viewModel.pages.value
+                    // 使用响应式收集的 pages：异步分页完成后自动刷新显示
                     val page = pages.getOrNull(pageIndex) ?: Page(0, emptyList())
-                    TextPageCanvas(
-                        page = page,
-                        textColor = textColor,
-                        textSizePx = settings.fontSizeSp * density,
-                        modifier = Modifier.fillMaxSize()
-                    )
+                    if (page.lines.isEmpty() && pages.isEmpty()) {
+                        // 分页尚未完成，显示加载中
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text("加载中...", color = textColor.copy(alpha = 0.6f), fontSize = 15.sp)
+                        }
+                    } else {
+                        TextPageCanvas(
+                            page = page,
+                            textColor = textColor,
+                            textSizePx = settings.fontSizeSp * density,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    }
                 }
             }
         }
@@ -302,8 +314,8 @@ fun ReaderScreen(
                     modifier = Modifier.weight(1f)
                 )
                 Text(
-                    text = if (viewModel.pages.value.isNotEmpty())
-                        "${currentPageIndex + 1}/${viewModel.pages.value.size}" else "",
+                    text = if (pages.isNotEmpty())
+                        "${currentPageIndex + 1}/${pages.size}" else "",
                     color = textColor.copy(alpha = 0.6f),
                     fontSize = 12.sp
                 )
