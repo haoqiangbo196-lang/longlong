@@ -3,7 +3,6 @@ package com.elegant.reader.ui.reader
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Paint
-import android.graphics.Typeface
 import android.view.View
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -16,14 +15,12 @@ import com.elegant.reader.reader.Page
  * 基于 Canvas 的文字渲染组件。
  *
  * 参考 Legado 的 ContentTextView + TextLine.draw 架构：
- * 使用 Android 原生 Canvas.drawText 逐行绘制分页好的文本。
- *
- * @param typeface 由 ViewModel 统一持有的字体，保证与分页测量完全一致。
+ * 使用 Android 原生 Canvas.drawText 逐行绘制分页好的文本，
+ * 系统默认字体，保证与分页测量完全一致。
  */
 @Composable
 fun TextPageCanvas(
     page: Page,
-    typeface: Typeface,
     textColor: Color,
     textSizePx: Float,
     modifier: Modifier = Modifier
@@ -32,14 +29,12 @@ fun TextPageCanvas(
         modifier = modifier,
         factory = { context ->
             TextPageView(context).apply {
-                this.typeface = typeface
                 this.textColor = textColor.toArgb()
                 this.textSizePx = textSizePx
                 this.page = page
             }
         },
         update = { view ->
-            view.typeface = typeface
             view.textColor = textColor.toArgb()
             view.textSizePx = textSizePx
             view.page = page
@@ -52,13 +47,6 @@ fun TextPageCanvas(
  */
 private class TextPageView(context: Context) : View(context) {
 
-    var typeface: Typeface? = null
-        set(value) {
-            if (field != value) {
-                field = value
-                invalidate()
-            }
-        }
     var textColor: Int = 0xFF000000.toInt()
         set(value) {
             if (field != value) {
@@ -86,7 +74,6 @@ private class TextPageView(context: Context) : View(context) {
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
         paint.color = textColor
-        paint.typeface = typeface
         paint.textSize = textSizePx
 
         for (line in page.lines) {
