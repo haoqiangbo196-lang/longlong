@@ -34,17 +34,20 @@ class Paginator {
             return listOf(Page(0, text))
         }
 
+        // 段间距：在段落之间插入空行，使段落分隔在渲染和分页中一致
+        val processedText = applyParagraphSpacing(text, settings)
+
         val paint = createTextPaint(settings, density)
         val pages = mutableListOf<Page>()
 
         var currentStart = 0
-        val totalLength = text.length
+        val totalLength = processedText.length
 
         while (currentStart < totalLength) {
             val layout = StaticLayout.Builder
-                .obtain(text, currentStart, totalLength, paint, pageWidthPx)
+                .obtain(processedText, currentStart, totalLength, paint, pageWidthPx)
                 .setAlignment(Layout.Alignment.ALIGN_NORMAL)
-                .setLineSpacing(settings.paragraphSpacing * density, 1f)
+                .setLineSpacing(0f, 1f)
                 .setIncludePad(true)
                 .build()
 
@@ -62,17 +65,34 @@ class Paginator {
                 }
             }
 
-            val pageText = text.substring(currentStart, end)
+            val pageText = processedText.substring(currentStart, end)
             pages.add(Page(currentStart, pageText))
             currentStart = end
         }
 
         // 如果文本有内容但没有产生页（极端情况），兜底一页
         if (pages.isEmpty()) {
-            pages.add(Page(0, text))
+            pages.add(Page(0, processedText))
         }
 
         return pages
+    }
+
+    /**
+     * 根据段间距设置，在段落之间插入空行。
+     * 段落间距 0~30 映射为 0~3 个空行。
+     */
+    private fun applyParagraphSpacing(text: String, settings: ReaderSettings): String {
+        if (settings.paragraphSpacing <= 0f) return text
+        val blankLines = (settings.paragraphSpacing / 10f).toInt().coerceIn(0, 3)
+        if (blankLines == 0) return text
+
+        // 将段落边界（\n）替换为「\n + 空行」，保留原有换行
+        val separator = "\n" + "\n".repeat(blankLines)
+        // 只对单个换行符处理，避免重复的空行继续叠加
+        return text
+            .replace(Regex("\n{2,}"), "\n")  // 先压缩连续换行为单个
+            .replace("\n", separator)          // 每个换行后插入空行
     }
 
     private fun createTextPaint(settings: ReaderSettings, density: Float): TextPaint {
