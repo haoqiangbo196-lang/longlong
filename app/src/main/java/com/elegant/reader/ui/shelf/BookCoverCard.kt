@@ -32,8 +32,9 @@ import com.elegant.reader.data.Book
 import com.elegant.reader.ui.theme.CoverGradients
 
 /**
- * 书籍封面卡片，模拟精装书封的拟物质感。
- * 用渐变 + 书脊高光 + 上下压暗营造立体感。
+ * 书籍封面卡片 —— 锤子拟物精装书封。
+ *
+ * 渐变书封 + 书脊高光 + 上下压暗 + 浮雕标题，营造真实精装书质感。
  */
 @Composable
 fun BookCoverCard(
@@ -45,19 +46,19 @@ fun BookCoverCard(
 
     Column(
         modifier = modifier
-            .width(120.dp)
-            .clip(RoundedCornerShape(14.dp))
+            .width(124.dp)
+            .clip(RoundedCornerShape(16.dp))
             .shadow(
-                elevation = 8.dp,
-                shape = RoundedCornerShape(14.dp),
-                ambientColor = Color.Black.copy(alpha = 0.25f),
-                spotColor = Color.Black.copy(alpha = 0.35f)
+                elevation = 12.dp,
+                shape = RoundedCornerShape(16.dp),
+                ambientColor = Color.Black.copy(alpha = 0.3f),
+                spotColor = Color.Black.copy(alpha = 0.45f)
             )
             .background(
                 Brush.linearGradient(
                     colors = gradient,
                     start = Offset(0f, 0f),
-                    end = Offset(1200f, 1600f)
+                    end = Offset(1240f, 1700f)
                 )
             )
             .clickable(
@@ -66,16 +67,31 @@ fun BookCoverCard(
                 onClick = onClick
             )
     ) {
-        Box(modifier = Modifier.fillMaxWidth().height(160.dp)) {
-            // 书脊高光
+        Box(modifier = Modifier.fillMaxWidth().height(168.dp)) {
+            // 书脊高光（左侧亮条）
             Box(
                 modifier = Modifier
                     .align(Alignment.CenterStart)
-                    .width(4.dp)
+                    .width(5.dp)
                     .fillMaxSize()
-                    .background(Color.White.copy(alpha = 0.18f))
+                    .background(
+                        Brush.horizontalGradient(
+                            colors = listOf(
+                                Color.White.copy(alpha = 0.35f),
+                                Color.White.copy(alpha = 0.05f)
+                            )
+                        )
+                    )
             )
-            // 上下压暗，营造内阴影
+            // 书脊阴影（右侧）
+            Box(
+                modifier = Modifier
+                    .align(Alignment.CenterEnd)
+                    .width(3.dp)
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.15f))
+            )
+            // 上下压暗，营造内阴影立体感
             Box(
                 modifier = Modifier
                     .align(Alignment.TopStart)
@@ -83,29 +99,43 @@ fun BookCoverCard(
                     .background(
                         Brush.verticalGradient(
                             colors = listOf(
-                                Color.Black.copy(alpha = 0.08f),
+                                Color.Black.copy(alpha = 0.12f),
                                 Color.Transparent,
-                                Color.Black.copy(alpha = 0.12f)
+                                Color.Transparent,
+                                Color.Black.copy(alpha = 0.18f)
                             )
                         )
                     )
             )
-            // 标题文字
+            // 浮雕标题
             Column(
                 modifier = Modifier
                     .align(Alignment.Center)
-                    .padding(horizontal = 14.dp),
+                    .padding(horizontal = 16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
+                // 浮雕阴影层（向下偏移的暗色文字）
                 Text(
                     text = book.title,
-                    color = Color.White,
-                    fontSize = 15.sp,
+                    color = Color.Black.copy(alpha = 0.35f),
+                    fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                     maxLines = 3,
                     overflow = TextOverflow.Ellipsis,
-                    lineHeight = 20.sp
+                    lineHeight = 21.sp,
+                    modifier = Modifier.padding(top = 2.dp)
+                )
+                // 主标题层
+                Text(
+                    text = book.title,
+                    color = Color.White,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 3,
+                    overflow = TextOverflow.Ellipsis,
+                    lineHeight = 21.sp,
+                    modifier = Modifier.padding(top = 0.dp)
                 )
                 if (book.author.isNotBlank()) {
                     Spacer(Modifier.height(6.dp))
@@ -119,12 +149,12 @@ fun BookCoverCard(
                 }
             }
         }
-        // 底部信息条
+        // 底部信息条（皮革质感）
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Color.Black.copy(alpha = 0.18f))
-                .padding(horizontal = 10.dp, vertical = 6.dp),
+                .background(Color.Black.copy(alpha = 0.28f))
+                .padding(horizontal = 10.dp, vertical = 7.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
