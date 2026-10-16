@@ -1,6 +1,7 @@
 package com.elegant.reader.ui.reader
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -26,6 +27,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -35,15 +37,16 @@ import com.elegant.reader.reader.FontFamilyOption
 import com.elegant.reader.reader.PageTurnMode
 import com.elegant.reader.reader.ReaderSettings
 import com.elegant.reader.reader.ReaderTheme
-import com.elegant.reader.ui.theme.TextPrimary
-import com.elegant.reader.ui.theme.TextSecondary
+import com.elegant.reader.ui.theme.LeatherBrown
+import com.elegant.reader.ui.theme.PaperCream
+import com.elegant.reader.ui.theme.PaperWhite
 import com.elegant.reader.ui.theme.Terracotta
+import com.elegant.reader.ui.theme.TerracottaDark
 import com.elegant.reader.ui.theme.TerracottaLight
-import com.elegant.reader.ui.theme.WarmSurface
 
 /**
- * 阅读设置面板：使用 Material3 ModalBottomSheet，
- * 自带半透明遮罩、下滑关闭、返回键关闭等标准行为。
+ * 阅读设置面板 —— 锤子拟物风格。
+ * 皮革/木纹容器、浮雕芯片、拟物主题色点。
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -57,14 +60,30 @@ fun ReaderSettingsPanel(
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
-        containerColor = WarmSurface
+        containerColor = LeatherBrown
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 20.dp)
-                .padding(bottom = 24.dp)
+                .padding(bottom = 28.dp)
         ) {
+            // 标题
+            Text(
+                text = "阅读设置",
+                color = PaperCream,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                letterSpacing = 1.sp
+            )
+            Spacer(Modifier.height(4.dp))
+            Text(
+                text = "排版 · 字体 · 主题 · 翻页",
+                color = PaperCream.copy(alpha = 0.55f),
+                fontSize = 12.sp
+            )
+            Spacer(Modifier.height(16.dp))
+
             // 字号
             SettingSliderRow(
                 title = "字号",
@@ -94,7 +113,7 @@ fun ReaderSettingsPanel(
             // 字体
             Text(
                 text = "字体",
-                color = TextSecondary,
+                color = PaperCream.copy(alpha = 0.7f),
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Medium
             )
@@ -114,7 +133,7 @@ fun ReaderSettingsPanel(
             // 主题
             Text(
                 text = "阅读主题",
-                color = TextSecondary,
+                color = PaperCream.copy(alpha = 0.7f),
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Medium
             )
@@ -134,7 +153,7 @@ fun ReaderSettingsPanel(
             // 翻页动画
             Text(
                 text = "翻页动画",
-                color = TextSecondary,
+                color = PaperCream.copy(alpha = 0.7f),
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Medium
             )
@@ -165,7 +184,7 @@ private fun SettingSliderRow(
     ) {
         Text(
             text = title,
-            color = TextPrimary,
+            color = PaperCream,
             fontSize = 14.sp,
             fontWeight = FontWeight.Medium,
             modifier = Modifier.width(60.dp)
@@ -176,14 +195,14 @@ private fun SettingSliderRow(
             valueRange = range,
             modifier = Modifier.weight(1f),
             colors = SliderDefaults.colors(
-                thumbColor = Terracotta,
-                activeTrackColor = Terracotta,
-                inactiveTrackColor = TerracottaLight.copy(alpha = 0.3f)
+                thumbColor = TerracottaLight,
+                activeTrackColor = TerracottaLight,
+                inactiveTrackColor = Color.White.copy(alpha = 0.15f)
             )
         )
         Text(
             text = String.format("%.1f", value),
-            color = TextSecondary,
+            color = PaperCream.copy(alpha = 0.7f),
             fontSize = 13.sp,
             modifier = Modifier.width(48.dp),
             textAlign = androidx.compose.ui.text.style.TextAlign.End
@@ -200,12 +219,29 @@ private fun OptionChip(
     Box(
         modifier = Modifier
             .clip(RoundedCornerShape(12.dp))
+            .then(
+                if (selected) {
+                    Modifier.shadow(
+                        elevation = 4.dp,
+                        shape = RoundedCornerShape(12.dp),
+                        ambientColor = Terracotta.copy(alpha = 0.5f),
+                        spotColor = Terracotta.copy(alpha = 0.6f)
+                    )
+                } else {
+                    Modifier
+                }
+            )
             .background(
                 if (selected) {
-                    Brush.linearGradient(listOf(TerracottaLight, Terracotta))
+                    Brush.linearGradient(listOf(TerracottaLight, Terracotta, TerracottaDark))
                 } else {
-                    Brush.linearGradient(listOf(Color(0xFFF0EAE0), Color(0xFFF0EAE0)))
+                    Brush.linearGradient(listOf(Color(0xFF3E2B1E), Color(0xFF3E2B1E)))
                 }
+            )
+            .border(
+                width = 1.dp,
+                color = if (selected) Color.White.copy(alpha = 0.4f) else Color.White.copy(alpha = 0.08f),
+                shape = RoundedCornerShape(12.dp)
             )
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
@@ -216,7 +252,7 @@ private fun OptionChip(
     ) {
         Text(
             text = text,
-            color = if (selected) Color.White else TextSecondary,
+            color = if (selected) Color.White else PaperCream.copy(alpha = 0.6f),
             fontSize = 13.sp,
             fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal
         )
@@ -233,7 +269,24 @@ private fun ThemeDot(
         modifier = Modifier
             .size(40.dp)
             .clip(CircleShape)
+            .then(
+                if (selected) {
+                    Modifier.shadow(
+                        elevation = 6.dp,
+                        shape = CircleShape,
+                        ambientColor = Terracotta.copy(alpha = 0.5f),
+                        spotColor = Terracotta.copy(alpha = 0.6f)
+                    )
+                } else {
+                    Modifier
+                }
+            )
             .background(Color(theme.background))
+            .border(
+                width = if (selected) 2.dp else 1.dp,
+                color = if (selected) TerracottaLight else Color.White.copy(alpha = 0.2f),
+                shape = CircleShape
+            )
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
