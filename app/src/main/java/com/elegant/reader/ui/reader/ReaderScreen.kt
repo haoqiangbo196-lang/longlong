@@ -14,7 +14,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -24,6 +23,7 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.FormatListBulleted
+import androidx.compose.material.icons.rounded.Tune
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -41,14 +41,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.elegant.reader.reader.Page
 import com.elegant.reader.reader.ReaderSettingsStore
 import com.elegant.reader.reader.ReaderViewModel
-import com.elegant.reader.reader.FontFamilyOption
 import com.elegant.reader.ui.animation.Motion
 import com.elegant.reader.ui.clickableNoIndication
 import kotlinx.coroutines.flow.firstOrNull
@@ -72,6 +71,7 @@ fun ReaderScreen(
 
     var showMenu by remember { mutableStateOf(false) }
     var showSettings by remember { mutableStateOf(false) }
+    var showToc by remember { mutableStateOf(false) }
 
     val context = LocalView.current.context
     val settingsStore = remember { ReaderSettingsStore(context) }
@@ -218,19 +218,15 @@ fun ReaderScreen(
                     modifier = Modifier.fillMaxSize(),
                     contentKey = { it.first }
                 ) { (pageIndex, chapterIndex) ->
-                    val chapter = chapters.getOrNull(chapterIndex)
                     val pages = viewModel.pages.value
-                    val pageText = pages.getOrNull(pageIndex)?.text ?: ""
-                    Column(modifier = Modifier.fillMaxSize()) {
-                        Text(
-                            text = pageText,
-                            color = textColor,
-                            fontSize = settings.fontSizeSp.sp,
-                            lineHeight = (settings.fontSizeSp * settings.lineHeightMultiplier).sp,
-                            fontFamily = settings.fontFamily.toComposeFontFamily(),
-                            fontWeight = FontWeight.Normal
-                        )
-                    }
+                    val page = pages.getOrNull(pageIndex) ?: Page(0, emptyList())
+                    TextPageCanvas(
+                        page = page,
+                        settings = settings,
+                        textColor = textColor,
+                        density = density,
+                        modifier = Modifier.fillMaxSize()
+                    )
                 }
             }
         }
@@ -241,6 +237,7 @@ fun ReaderScreen(
                 title = book?.title ?: "",
                 onBack = onBack,
                 onToggleSettings = { showSettings = !showSettings },
+                onToggleToc = { showToc = !showToc },
                 backgroundColor = backgroundColor,
                 textColor = textColor
             )
@@ -283,13 +280,25 @@ fun ReaderScreen(
                 onDismiss = { showSettings = false }
             )
         }
+
+        // 目录抽屉
+        ChapterDrawer(
+            visible = showToc,
+            chapters = chapters,
+            currentChapterIndex = currentChapterIndex,
+            onChapterClick = { index -> viewModel.gotoChapter(index) },
+            onDismiss = { showToc = false }
+        )
     }
 
-    // 返回键处理：设置面板打开时优先关闭面板，其次关闭菜单
+    // 返回键处理：设置面板/目录打开时优先关闭，其次关闭菜单
     androidx.activity.compose.BackHandler(enabled = showSettings) {
         showSettings = false
     }
-    androidx.activity.compose.BackHandler(enabled = showMenu && !showSettings) {
+    androidx.activity.compose.BackHandler(enabled = showToc && !showSettings) {
+        showToc = false
+    }
+    androidx.activity.compose.BackHandler(enabled = showMenu && !showSettings && !showToc) {
         showMenu = false
     }
 }
@@ -299,6 +308,7 @@ private fun ReaderTopBar(
     title: String,
     onBack: () -> Unit,
     onToggleSettings: () -> Unit,
+    onToggleToc: () -> Unit,
     backgroundColor: Color,
     textColor: Color
 ) {
@@ -330,23 +340,19 @@ private fun ReaderTopBar(
         )
         Icon(
             imageVector = Icons.Rounded.FormatListBulleted,
+            contentDescription = "目录",
+            tint = textColor,
+            modifier = Modifier
+                .clickableNoIndication(onClick = onToggleToc)
+                .padding(8.dp)
+        )
+        Icon(
+            imageVector = Icons.Rounded.Tune,
             contentDescription = "设置",
             tint = textColor,
             modifier = Modifier
                 .clickableNoIndication(onClick = onToggleSettings)
                 .padding(8.dp)
         )
-    }
-}
-
-/**
- * 将字体选项映射为 Compose 的 FontFamily。
- */
-private fun FontFamilyOption.toComposeFontFamily(): FontFamily {
-    return when (this) {
-        FontFamilyOption.DEFAULT -> FontFamily.Default
-        FontFamilyOption.SERIF -> FontFamily.Serif
-        FontFamilyOption.SANS -> FontFamily.SansSerif
-        FontFamilyOption.MONO -> FontFamily.Monospace
     }
 }
