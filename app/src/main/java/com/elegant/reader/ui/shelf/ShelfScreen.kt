@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -27,7 +28,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
-import androidx.compose.material.icons.rounded.MenuBook
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -40,6 +40,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -49,16 +50,24 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.elegant.reader.data.Book
 import com.elegant.reader.ui.animation.Motion
 import com.elegant.reader.ui.clickableNoIndication
-import com.elegant.reader.ui.theme.TextPrimary
-import com.elegant.reader.ui.theme.TextSecondary
-import com.elegant.reader.ui.theme.TextTertiary
+import com.elegant.reader.ui.theme.LeatherBrown
+import com.elegant.reader.ui.theme.LeatherDark
+import com.elegant.reader.ui.theme.PaperCream
+import com.elegant.reader.ui.theme.PaperWhite
 import com.elegant.reader.ui.theme.Terracotta
 import com.elegant.reader.ui.theme.TerracottaLight
-import com.elegant.reader.ui.theme.WarmBackground
-import com.elegant.reader.ui.theme.WarmSurface
+import com.elegant.reader.ui.theme.TextSecondary
+import com.elegant.reader.ui.theme.WoodDark
+import com.elegant.reader.ui.theme.WoodLight
+import com.elegant.reader.ui.theme.WoodMid
 
 /**
- * 书架主界面。
+ * 书架主界面 —— 锤子 Smartisan OS 拟物风格。
+ *
+ * 设计语言：
+ *  - 木纹渐变背景，营造真实书架质感
+ *  - 皮革质感顶栏，书脊拟物卡片
+ *  - 多层次阴影 + 浮雕高光，立体浮起
  */
 @Composable
 fun ShelfScreen(
@@ -83,19 +92,20 @@ fun ShelfScreen(
             .background(
                 Brush.verticalGradient(
                     colors = listOf(
-                        WarmBackground,
-                        WarmBackground,
-                        WarmSurface.copy(alpha = 0.6f)
-                    )
+                        WoodLight,
+                        WoodMid,
+                        WoodDark
+                    ),
+                    startY = 0f,
+                    endY = 1400f
                 )
             )
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
-            // 顶部标题栏
+            // 皮革质感顶栏
             ShelfHeader(bookCount = books.size)
 
             if (books.isEmpty()) {
-                // 空状态
                 EmptyShelf(
                     onImport = {
                         filePicker.launch(arrayOf("text/plain", "application/epub+zip", "application/octet-stream"))
@@ -103,15 +113,15 @@ fun ShelfScreen(
                 )
             } else {
                 LazyVerticalGrid(
-                    columns = GridCells.Adaptive(minSize = 120.dp),
+                    columns = GridCells.Adaptive(minSize = 124.dp),
                     contentPadding = PaddingValues(
                         start = 20.dp,
                         end = 20.dp,
-                        top = 12.dp,
-                        bottom = 100.dp
+                        top = 16.dp,
+                        bottom = 110.dp
                     ),
-                    horizontalArrangement = Arrangement.spacedBy(18.dp),
-                    verticalArrangement = Arrangement.spacedBy(22.dp),
+                    horizontalArrangement = Arrangement.spacedBy(20.dp),
+                    verticalArrangement = Arrangement.spacedBy(24.dp),
                     modifier = Modifier.fillMaxSize()
                 ) {
                     items(
@@ -119,7 +129,6 @@ fun ShelfScreen(
                         key = { it.id }
                     ) { book ->
                         var visible by remember { mutableStateOf(false) }
-                        // 使用启动时淡入 + 上移的入场动画
                         androidx.compose.runtime.LaunchedEffect(book.id) {
                             visible = true
                         }
@@ -145,11 +154,11 @@ fun ShelfScreen(
             }
         }
 
-        // 底部悬浮导入按钮
+        // 底部悬浮导入按钮（拟物金属质感）
         FloatingImportButton(
             modifier = Modifier
                 .align(Alignment.BottomEnd)
-                .padding(24.dp),
+                .padding(26.dp),
             loading = importing,
             onClick = {
                 filePicker.launch(arrayOf("text/plain", "application/epub+zip", "application/octet-stream"))
@@ -182,42 +191,48 @@ fun ShelfScreen(
     }
 }
 
+/**
+ * 皮革质感顶栏。
+ */
 @Composable
 private fun ShelfHeader(bookCount: Int) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
+            .statusBarsPadding()
+            .background(
+                Brush.verticalGradient(
+                    colors = listOf(
+                        LeatherDark,
+                        LeatherBrown,
+                        LeatherBrown
+                    )
+                )
+            )
+            // 皮革底部缝线阴影
+            .shadow(6.dp, spotColor = Color.Black.copy(alpha = 0.5f))
             .padding(horizontal = 24.dp, vertical = 20.dp)
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = "我的书架",
-                    color = TextPrimary,
-                    fontSize = 28.sp,
-                    fontWeight = FontWeight.Bold,
-                    letterSpacing = 1.sp
-                )
-                Spacer(Modifier.height(4.dp))
-                Text(
-                    text = if (bookCount == 0) "添加你的第一本书吧" else "共 $bookCount 本书",
-                    color = TextSecondary,
-                    fontSize = 14.sp
-                )
-            }
-            Icon(
-                imageVector = Icons.Rounded.MenuBook,
-                contentDescription = null,
-                tint = Terracotta,
-                modifier = Modifier
-                    .clip(CircleShape)
-                    .background(TerracottaLight.copy(alpha = 0.25f))
-                    .padding(12.dp)
-            )
-        }
+        Text(
+            text = "龙颜大阅",
+            color = PaperCream,
+            fontSize = 30.sp,
+            fontWeight = FontWeight.Bold,
+            letterSpacing = 3.sp
+        )
+        Spacer(Modifier.height(6.dp))
+        Text(
+            text = if (bookCount == 0) "藏书阁空置，静候佳卷" else "藏书 $bookCount 卷",
+            color = PaperCream.copy(alpha = 0.7f),
+            fontSize = 14.sp,
+            letterSpacing = 1.sp
+        )
     }
 }
 
+/**
+ * 空书架状态。
+ */
 @Composable
 private fun EmptyShelf(onImport: () -> Unit) {
     Column(
@@ -227,51 +242,87 @@ private fun EmptyShelf(onImport: () -> Unit) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
+        // 拟物书卷图标
         Box(
             modifier = Modifier
+                .size(120.dp)
                 .clip(RoundedCornerShape(28.dp))
+                .shadow(
+                    elevation = 12.dp,
+                    shape = RoundedCornerShape(28.dp),
+                    ambientColor = Color.Black.copy(alpha = 0.3f),
+                    spotColor = Color.Black.copy(alpha = 0.4f)
+                )
                 .background(
                     Brush.linearGradient(
-                        colors = listOf(TerracottaLight.copy(alpha = 0.5f), Terracotta.copy(alpha = 0.3f))
+                        colors = listOf(PaperWhite, PaperCream),
+                        start = Offset(0f, 0f),
+                        end = Offset(0f, 400f)
                     )
-                )
-                .padding(32.dp)
+                ),
+            contentAlignment = Alignment.Center
         ) {
-            Icon(
-                imageVector = Icons.Rounded.MenuBook,
-                contentDescription = null,
-                tint = Terracotta,
-                modifier = Modifier.size(64.dp)
-            )
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(
+                    text = "龍",
+                    color = Terracotta,
+                    fontSize = 44.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = "阅",
+                    color = TextSecondary,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Medium
+                )
+            }
         }
-        Spacer(Modifier.height(24.dp))
+        Spacer(Modifier.height(28.dp))
         Text(
             text = "书架空空如也",
-            color = TextPrimary,
+            color = PaperWhite,
             fontSize = 20.sp,
             fontWeight = FontWeight.SemiBold
         )
         Spacer(Modifier.height(8.dp))
         Text(
             text = "点击下方按钮，导入 TXT 或 EPUB 书籍",
-            color = TextSecondary,
+            color = PaperWhite.copy(alpha = 0.7f),
             fontSize = 14.sp
         )
         Spacer(Modifier.height(28.dp))
-        androidx.compose.material3.Button(
-            onClick = onImport,
-            shape = RoundedCornerShape(16.dp),
+        // 拟物按钮
+        Box(
             modifier = Modifier
                 .height(52.dp)
-                .shadow(6.dp, RoundedCornerShape(16.dp), spotColor = Terracotta.copy(alpha = 0.5f))
+                .clip(RoundedCornerShape(18.dp))
+                .shadow(
+                    elevation = 8.dp,
+                    shape = RoundedCornerShape(18.dp),
+                    ambientColor = Terracotta.copy(alpha = 0.5f),
+                    spotColor = Terracotta.copy(alpha = 0.6f)
+                )
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(TerracottaLight, Terracotta)
+                    )
+                )
+                .clickableNoIndication(onClick = onImport)
+                .padding(horizontal = 28.dp),
+            contentAlignment = Alignment.Center
         ) {
-            Icon(Icons.Rounded.Add, contentDescription = null)
-            Spacer(Modifier.height(0.dp))
-            Text("导入书籍", modifier = Modifier.padding(start = 8.dp))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Rounded.Add, contentDescription = null, tint = Color.White)
+                Spacer(Modifier.size(6.dp))
+                Text("导入书籍", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+            }
         }
     }
 }
 
+/**
+ * 拟物金属质感悬浮导入按钮。
+ */
 @Composable
 private fun FloatingImportButton(
     modifier: Modifier = Modifier,
@@ -281,25 +332,31 @@ private fun FloatingImportButton(
     Box(
         modifier = modifier
             .shadow(
-                elevation = 10.dp,
+                elevation = 14.dp,
                 shape = CircleShape,
-                ambientColor = Terracotta.copy(alpha = 0.4f),
-                spotColor = Terracotta.copy(alpha = 0.5f)
+                ambientColor = Color.Black.copy(alpha = 0.35f),
+                spotColor = Color.Black.copy(alpha = 0.5f)
             )
             .clip(CircleShape)
             .background(
-                Brush.linearGradient(
-                    colors = listOf(TerracottaLight, Terracotta)
+                Brush.radialGradient(
+                    colors = listOf(
+                        TerracottaLight,
+                        Terracotta,
+                        WoodDark
+                    ),
+                    center = Offset(200f, 200f),
+                    radius = 600f
                 )
             )
             .clickableNoIndication(onClick = onClick)
-            .padding(18.dp)
+            .padding(20.dp)
     ) {
         Icon(
             imageVector = Icons.Rounded.Add,
             contentDescription = "导入书籍",
             tint = Color.White,
-            modifier = Modifier.size(28.dp)
+            modifier = Modifier.size(30.dp)
         )
     }
 }
