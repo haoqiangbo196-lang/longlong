@@ -1,15 +1,14 @@
 package com.elegant.reader.ui.shelf
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -31,118 +30,134 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.elegant.reader.data.Book
 import com.elegant.reader.ui.theme.CoverGradients
+import com.elegant.reader.ui.theme.GreenLight
+import com.elegant.reader.ui.theme.GreenMain
+import com.elegant.reader.ui.theme.InkDark
+import com.elegant.reader.ui.theme.InkGray
+import com.elegant.reader.ui.theme.WoodTone
 
 /**
- * 书籍封面 —— 古典书卷风。
- *
- * 竖排书名 + 书脊高光 + 上下压暗 + 底部进度条，像一本立在书架上的真书。
+ * 书架条目 —— 完全按设计稿还原：
+ * 书封（竖排书名 + 底部木托）+ 封面下方书名 + 进度条。
+ * 单击打开，长按删除。
  */
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun BookCoverCard(
     book: Book,
     modifier: Modifier = Modifier,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onLongClick: (() -> Unit)? = null
 ) {
     val gradient = CoverGradients[(book.id % CoverGradients.size).toInt()]
-    // 竖排书名（最多 7 字，超出省略）
     val titleChars = remember(book.title) {
-        if (book.title.length > 7) (book.title.take(6) + "…").toList() else book.title.toList()
+        if (book.title.length > 6) (book.title.take(5) + "…").toList() else book.title.toList()
     }
 
-    Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .height(196.dp)
-            .shadow(
-                elevation = 10.dp,
-                shape = RoundedCornerShape(topStart = 4.dp, topEnd = 10.dp, bottomEnd = 4.dp, bottomStart = 10.dp),
-                ambientColor = Color.Black.copy(alpha = 0.45f),
-                spotColor = Color.Black.copy(alpha = 0.55f)
-            )
-            .clip(RoundedCornerShape(topStart = 4.dp, topEnd = 10.dp, bottomEnd = 4.dp, bottomStart = 10.dp))
-            .background(
-                Brush.linearGradient(
-                    colors = gradient,
-                    start = Offset(0f, 0f),
-                    end = Offset(900f, 1600f)
-                )
-            )
-            .clickable(
-                interactionSource = remember { MutableInteractionSource() },
-                indication = null,
-                onClick = onClick
-            )
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // 书脊高光（左缘亮条，像书脊被灯光照亮）
+        // ---- 书封 ----
         Box(
             modifier = Modifier
-                .align(Alignment.CenterStart)
-                .width(6.dp)
-                .fillMaxSize()
-                .background(
-                    Brush.horizontalGradient(
-                        colors = listOf(
-                            Color.White.copy(alpha = 0.4f),
-                            Color.White.copy(alpha = 0.04f)
-                        )
-                    )
-                )
-        )
-        // 右缘暗边（背光面）
-        Box(
-            modifier = Modifier
-                .align(Alignment.CenterEnd)
-                .width(4.dp)
-                .fillMaxSize()
-                .background(Color.Black.copy(alpha = 0.22f))
-        )
-        // 上下压暗（内阴影立体感）
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(
-                    Brush.verticalGradient(
-                        colors = listOf(
-                            Color.Black.copy(alpha = 0.18f),
-                            Color.Transparent,
-                            Color.Transparent,
-                            Color.Black.copy(alpha = 0.22f)
-                        )
-                    )
-                )
-        )
-        // 竖排书名
-        Column(
-            modifier = Modifier
-                .align(Alignment.Center)
-                .padding(top = 14.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            titleChars.forEach { ch ->
-                Text(
-                    text = ch.toString(),
-                    color = Color.White,
-                    fontSize = 17.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    lineHeight = 23.sp
-                )
-            }
-        }
-        // 底部进度条
-        Column(
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
                 .fillMaxWidth()
-                .background(Color.Black.copy(alpha = 0.30f))
-                .padding(horizontal = 8.dp, vertical = 5.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .height(150.dp)
+                .shadow(4.dp, RoundedCornerShape(6.dp), spotColor = Color.Black.copy(alpha = 0.25f))
+                .clip(RoundedCornerShape(6.dp))
+                .background(
+                    Brush.linearGradient(
+                        colors = gradient,
+                        start = Offset.Zero,
+                        end = Offset(600f, 900f)
+                    )
+                )
+                .combinedClickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null,
+                    onClick = onClick,
+                    onLongClick = onLongClick
+                )
+        ) {
+            // 竖排书名（白字带轻阴影）
+            Column(
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .padding(top = 14.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                titleChars.forEach { ch ->
+                    Text(
+                        text = ch.toString(),
+                        color = Color.White,
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        lineHeight = 20.sp,
+                        style = androidx.compose.ui.text.TextStyle(
+                            shadow = androidx.compose.ui.graphics.Shadow(
+                                color = Color.Black.copy(alpha = 0.4f),
+                                offset = Offset(1f, 1f),
+                                blurRadius = 2f
+                            )
+                        )
+                    )
+                }
+            }
+            // 底部木托
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .fillMaxWidth()
+                    .height(5.dp)
+                    .background(
+                        Brush.verticalGradient(
+                            listOf(Color(0xFFD9BC8C), WoodTone, Color(0xFFA8865C))
+                        )
+                    )
+            )
+        }
+
+        Spacer(Modifier.height(7.dp))
+
+        // ---- 封面下方：书名 ----
+        Text(
+            text = book.title,
+            color = InkDark,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Medium,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(Modifier.height(5.dp))
+
+        // ---- 进度行：百分比 + 进度条 ----
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
                 text = "${(book.progress * 100).toInt()}%",
-                color = Color.White.copy(alpha = 0.85f),
-                fontSize = 9.sp,
-                fontWeight = FontWeight.Medium
+                color = InkGray,
+                fontSize = 10.sp
             )
+            Spacer(Modifier.width(5.dp))
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .height(4.dp)
+                    .clip(RoundedCornerShape(2.dp))
+                    .background(GreenLight)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth(book.progress.coerceIn(0.02f, 1f))
+                        .height(4.dp)
+                        .clip(RoundedCornerShape(2.dp))
+                        .background(GreenMain)
+                )
+            }
         }
     }
 }
