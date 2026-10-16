@@ -98,12 +98,15 @@ class ReaderViewModel(application: Application) : AndroidViewModel(application) 
         val chapters = _chapters.value
         if (chapters.isEmpty() || pageWidthPx <= 0 || pageHeightPx <= 0) return
         val chapter = chapters.getOrNull(_currentChapterIndex.value) ?: return
+        val settings = _settings.value
+        val typeface = FontLoader.load(settings)
         val pages = paginator.paginate(
             text = chapter.content,
-            settings = _settings.value,
+            settings = settings,
             pageWidthPx = pageWidthPx,
             pageHeightPx = pageHeightPx,
-            density = density
+            density = density,
+            typeface = typeface
         )
         _pages.value = pages
         _currentPageIndex.value = 0
@@ -170,13 +173,6 @@ class ReaderViewModel(application: Application) : AndroidViewModel(application) 
                 readingTimeDelta = elapsed
             )
         }
-    }
-
-    /**
-     * 当前页文本。
-     */
-    fun currentPageText(): String {
-        return _pages.value.getOrNull(_currentPageIndex.value)?.text ?: ""
     }
 
     override fun onCleared() {
