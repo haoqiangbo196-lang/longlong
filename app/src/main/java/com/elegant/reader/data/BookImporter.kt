@@ -36,8 +36,8 @@ class BookImporter(
             destFile.outputStream().use { output -> input.copyTo(output) }
         } ?: throw IllegalStateException("无法读取文件")
 
-        // 解析
-        val parsed: ParsedBook = BookParser.parse(destFile)
+        // 解析（传入原始文件名用于提取书名，避免时间戳前缀混入书名）
+        val parsed: ParsedBook = BookParser.parse(destFile, fileName)
 
         // 生成封面（暂用空，后续可用 epub 封面）
         val book = Book(
