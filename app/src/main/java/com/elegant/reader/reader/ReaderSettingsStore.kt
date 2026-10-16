@@ -17,12 +17,13 @@ class ReaderSettingsStore(private val context: Context) {
 
     private object Keys {
         val fontSize = floatPreferencesKey("font_size")
-        val lineHeight = floatPreferencesKey("line_height")
+        val lineSpacingExtra = floatPreferencesKey("line_spacing_extra")
         val paragraphSpacing = floatPreferencesKey("paragraph_spacing")
         val marginH = floatPreferencesKey("margin_h")
         val marginTop = floatPreferencesKey("margin_top")
         val marginBottom = floatPreferencesKey("margin_bottom")
         val fontFamily = stringPreferencesKey("font_family")
+        val customFontPath = stringPreferencesKey("custom_font_path")
         val theme = stringPreferencesKey("theme")
         val pageTurnMode = stringPreferencesKey("page_turn_mode")
     }
@@ -30,7 +31,7 @@ class ReaderSettingsStore(private val context: Context) {
     val settingsFlow: Flow<ReaderSettings> = context.dataStore.data.map { prefs ->
         ReaderSettings(
             fontSizeSp = prefs[Keys.fontSize] ?: 18f,
-            lineHeightMultiplier = prefs[Keys.lineHeight] ?: 1.6f,
+            lineSpacingExtraSp = prefs[Keys.lineSpacingExtra] ?: 8f,
             paragraphSpacing = prefs[Keys.paragraphSpacing] ?: 8f,
             pageMarginHorizontalDp = prefs[Keys.marginH] ?: 20f,
             pageMarginTopDp = prefs[Keys.marginTop] ?: 16f,
@@ -38,6 +39,7 @@ class ReaderSettingsStore(private val context: Context) {
             fontFamily = runCatching {
                 FontFamilyOption.valueOf(prefs[Keys.fontFamily] ?: "DEFAULT")
             }.getOrDefault(FontFamilyOption.DEFAULT),
+            customFontPath = prefs[Keys.customFontPath] ?: "",
             theme = runCatching {
                 ReaderTheme.valueOf(prefs[Keys.theme] ?: "PAPER")
             }.getOrDefault(ReaderTheme.PAPER),
@@ -50,12 +52,13 @@ class ReaderSettingsStore(private val context: Context) {
     suspend fun save(settings: ReaderSettings) {
         context.dataStore.edit { prefs ->
             prefs[Keys.fontSize] = settings.fontSizeSp
-            prefs[Keys.lineHeight] = settings.lineHeightMultiplier
+            prefs[Keys.lineSpacingExtra] = settings.lineSpacingExtraSp
             prefs[Keys.paragraphSpacing] = settings.paragraphSpacing
             prefs[Keys.marginH] = settings.pageMarginHorizontalDp
             prefs[Keys.marginTop] = settings.pageMarginTopDp
             prefs[Keys.marginBottom] = settings.pageMarginBottomDp
             prefs[Keys.fontFamily] = settings.fontFamily.name
+            prefs[Keys.customFontPath] = settings.customFontPath
             prefs[Keys.theme] = settings.theme.name
             prefs[Keys.pageTurnMode] = settings.pageTurnMode.name
         }
