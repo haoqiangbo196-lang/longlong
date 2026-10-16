@@ -8,7 +8,6 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
-import androidx.compose.animation.scaleIn
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -71,7 +70,6 @@ fun ReaderScreen(
     val currentChapterIndex by viewModel.currentChapterIndex.collectAsState()
     val currentPageIndex by viewModel.currentPageIndex.collectAsState()
     val loading by viewModel.loading.collectAsState()
-    val typeface by viewModel.typeface.collectAsState()
 
     var showMenu by remember { mutableStateOf(false) }
     var showSettings by remember { mutableStateOf(false) }
@@ -230,27 +228,8 @@ fun ReaderScreen(
                                     )
                             }
 
-                            PageTurnMode.COVER -> {
-                                if (forward) {
-                                    (slideInHorizontally(
-                                        initialOffsetX = { fullWidth -> fullWidth },
-                                        animationSpec = tween(300, easing = Motion.PageTurn)
-                                    ) + fadeIn(tween(200, easing = Motion.Standard)))
-                                        .togetherWith(
-                                            fadeOut(tween(200, easing = Motion.Accelerate))
-                                        )
-                                } else {
-                                    (slideInHorizontally(
-                                        initialOffsetX = { fullWidth -> -fullWidth },
-                                        animationSpec = tween(300, easing = Motion.PageTurn)
-                                    ) + fadeIn(tween(200, easing = Motion.Standard)))
-                                        .togetherWith(
-                                            fadeOut(tween(200, easing = Motion.Accelerate))
-                                        )
-                                }
-                            }
-
-                            PageTurnMode.SLIDE -> {
+                            else -> {
+                                // 左右滑动翻页
                                 if (forward) {
                                     (slideInHorizontally(
                                         initialOffsetX = { fullWidth -> fullWidth },
@@ -275,40 +254,6 @@ fun ReaderScreen(
                                         )
                                 }
                             }
-
-                            else -> {
-                                // 仿真翻页：带缩放 + 阴影感的左右滑动
-                                val scale = 0.94f
-                                if (forward) {
-                                    (slideInHorizontally(
-                                        initialOffsetX = { fullWidth -> fullWidth },
-                                        animationSpec = tween(360, easing = Motion.PageTurn)
-                                    ) + scaleIn(
-                                        initialScale = scale,
-                                        animationSpec = tween(360, easing = Motion.PageTurn)
-                                    ) + fadeIn(tween(240, easing = Motion.Standard)))
-                                        .togetherWith(
-                                            slideOutHorizontally(
-                                                targetOffsetX = { fullWidth -> -fullWidth / 3 },
-                                                animationSpec = tween(360, easing = Motion.PageTurn)
-                                            ) + fadeOut(tween(200, easing = Motion.Accelerate))
-                                        )
-                                } else {
-                                    (slideInHorizontally(
-                                        initialOffsetX = { fullWidth -> -fullWidth },
-                                        animationSpec = tween(360, easing = Motion.PageTurn)
-                                    ) + scaleIn(
-                                        initialScale = scale,
-                                        animationSpec = tween(360, easing = Motion.PageTurn)
-                                    ) + fadeIn(tween(240, easing = Motion.Standard)))
-                                        .togetherWith(
-                                            slideOutHorizontally(
-                                                targetOffsetX = { fullWidth -> fullWidth / 3 },
-                                                animationSpec = tween(360, easing = Motion.PageTurn)
-                                            ) + fadeOut(tween(200, easing = Motion.Accelerate))
-                                        )
-                                }
-                            }
                         }
                     },
                     label = "pageTurn",
@@ -319,7 +264,6 @@ fun ReaderScreen(
                     val page = pages.getOrNull(pageIndex) ?: Page(0, emptyList())
                     TextPageCanvas(
                         page = page,
-                        typeface = typeface,
                         textColor = textColor,
                         textSizePx = settings.fontSizeSp * density,
                         modifier = Modifier.fillMaxSize()
