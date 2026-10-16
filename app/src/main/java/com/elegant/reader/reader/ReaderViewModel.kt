@@ -1,7 +1,6 @@
 package com.elegant.reader.reader
 
 import android.app.Application
-import android.graphics.Typeface
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.elegant.reader.ReaderApplication
@@ -27,10 +26,6 @@ class ReaderViewModel(application: Application) : AndroidViewModel(application) 
     // 排版设置
     private val _settings = MutableStateFlow(ReaderSettings())
     val settings: StateFlow<ReaderSettings> = _settings.asStateFlow()
-
-    // 当前字体（分页与渲染共用，保证一致）
-    private val _typeface = MutableStateFlow<Typeface>(Typeface.DEFAULT)
-    val typeface: StateFlow<Typeface> = _typeface.asStateFlow()
 
     // 当前书籍
     private val _book = MutableStateFlow<Book?>(null)
@@ -107,8 +102,6 @@ class ReaderViewModel(application: Application) : AndroidViewModel(application) 
      */
     fun updateSettings(newSettings: ReaderSettings) {
         _settings.value = newSettings
-        // 立即更新字体，让渲染侧感知变化
-        _typeface.value = FontLoader.load(newSettings)
         repaginate()
     }
 
@@ -129,14 +122,12 @@ class ReaderViewModel(application: Application) : AndroidViewModel(application) 
 
         paginateJob = viewModelScope.launch {
             val pages = withContext(Dispatchers.Default) {
-                val typeface = FontLoader.load(settings)
                 paginator.paginate(
                     text = chapter.content,
                     settings = settings,
                     pageWidthPx = pageWidthPx,
                     pageHeightPx = pageHeightPx,
-                    density = density,
-                    typeface = typeface
+                    density = density
                 )
             }
             // 分页完成后再回到主线程更新状态
