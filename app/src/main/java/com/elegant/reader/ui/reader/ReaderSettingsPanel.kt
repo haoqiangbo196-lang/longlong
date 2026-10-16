@@ -33,7 +33,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.elegant.reader.reader.FontFamilyOption
 import com.elegant.reader.reader.PageTurnMode
 import com.elegant.reader.reader.ReaderSettings
 import com.elegant.reader.reader.ReaderTheme
@@ -78,7 +77,7 @@ fun ReaderSettingsPanel(
             )
             Spacer(Modifier.height(4.dp))
             Text(
-                text = "排版 · 字体 · 主题 · 翻页",
+                text = "排版 · 主题 · 翻页",
                 color = PaperCream.copy(alpha = 0.55f),
                 fontSize = 12.sp
             )
@@ -109,26 +108,6 @@ fun ReaderSettingsPanel(
             )
 
             Spacer(Modifier.height(8.dp))
-
-            // 字体
-            Text(
-                text = "字体",
-                color = PaperCream.copy(alpha = 0.7f),
-                fontSize = 13.sp,
-                fontWeight = FontWeight.Medium
-            )
-            Spacer(Modifier.height(8.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                FontFamilyOption.entries.forEach { option ->
-                    OptionChip(
-                        text = option.displayName,
-                        selected = settings.fontFamily == option,
-                        onClick = { onSettingsChange(settings.copy(fontFamily = option)) }
-                    )
-                }
-            }
-
-            Spacer(Modifier.height(12.dp))
 
             // 主题
             Text(
