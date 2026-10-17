@@ -3,13 +3,13 @@ package com.elegant.reader.reader
 /**
  * 阅读排版设置，控制字号、行距、段距、页边距等。
  *
- * 行距采用「额外行距」模型（参考 Legado）：
+ * 行距采用「额外行距」模型：
  * lineSpacingExtraSp 表示在行高之外额外增加的行距（以 sp 计），
- * 实际渲染像素 = lineSpacingExtraSp / 10 * density。
+ * 实际渲染像素 = lineSpacingExtraSp * density，拖动即可见效果。
  */
 data class ReaderSettings(
     val fontSizeSp: Float = 18f,
-    val lineSpacingExtraSp: Float = 8f,
+    val lineSpacingExtraSp: Float = 6f,
     val paragraphSpacing: Float = 8f,
     val pageMarginHorizontalDp: Float = 20f,
     val pageMarginTopDp: Float = 16f,
