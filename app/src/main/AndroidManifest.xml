@@ -28,6 +28,12 @@
             </intent-filter>
         </activity>
 
+        <!-- Bmob SDK 必需的 ContentProvider -->
+        <provider
+            android:name="cn.bmob.v3.BmobContentProvider"
+            android:authorities="com.elegant.reader.BmobContentProvider"
+            android:exported="false" />
+
     </application>
 
 </manifest>
