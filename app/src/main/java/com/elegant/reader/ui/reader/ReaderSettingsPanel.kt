@@ -86,11 +86,11 @@ fun ReaderSettingsPanel(
                 onValueChange = { onSettingsChange(settings.copy(fontSizeSp = it)) }
             )
 
-            // 行间距（额外行距，sp 值）
+            // 行间距（额外行距，sp 值，拖动即生效）
             SettingSliderRow(
                 title = "行间距",
                 value = settings.lineSpacingExtraSp,
-                range = 0f..30f,
+                range = 0f..24f,
                 onValueChange = { onSettingsChange(settings.copy(lineSpacingExtraSp = it)) }
             )
 
