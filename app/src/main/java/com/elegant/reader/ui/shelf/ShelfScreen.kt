@@ -64,6 +64,7 @@ fun ShelfScreen(
     val importing by viewModel.importing.collectAsState()
 
     var showDeleteDialog by remember { mutableStateOf<Book?>(null) }
+    var showRequestDialog by remember { mutableStateOf(false) }
 
     val filePicker = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenDocument()
@@ -93,6 +94,32 @@ fun ShelfScreen(
             },
             modifier = Modifier.padding(horizontal = 18.dp)
         )
+
+        // ---- 求书入口 ----
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 10.dp)
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null
+                ) { showRequestDialog = true },
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "想看的书还没有？",
+                color = InkGray,
+                fontSize = 12.sp
+            )
+            Spacer(Modifier.width(4.dp))
+            Text(
+                text = "点这里求书",
+                color = GreenMain,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.SemiBold
+            )
+        }
 
         Spacer(Modifier.height(22.dp))
 
@@ -171,6 +198,14 @@ fun ShelfScreen(
                     Text("取消")
                 }
             }
+        )
+    }
+
+    // 求书弹窗
+    if (showRequestDialog) {
+        RequestBookDialog(
+            viewModel = viewModel,
+            onDismiss = { showRequestDialog = false }
         )
     }
 }
