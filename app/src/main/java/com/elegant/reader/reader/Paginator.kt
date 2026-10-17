@@ -40,8 +40,8 @@ class Paginator {
 
         val paint = createTextPaint(settings, density)
 
-        // 额外行距：Legado 中 lineSpacingExtra 由 sp 值 / 10 得到像素
-        val lineSpacingExtraPx = settings.lineSpacingExtraSp / 10f * density
+        // 额外行距：lineSpacingExtraSp 直接表示额外行距的 sp 值（拖动即可见效果）
+        val lineSpacingExtraPx = settings.lineSpacingExtraSp * density
         // 段距：直接使用像素值
         val paragraphSpacingPx = settings.paragraphSpacing * density
 
