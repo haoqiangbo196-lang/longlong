@@ -38,7 +38,7 @@ class BookRequestRepository(private val context: Context) {
             this.note = note
             this.status = "pending"
         }
-        request.save(object : SaveListener() {
+        request.save(object : SaveListener<String>() {
             override fun done(objectId: String?, e: BmobException?) {
                 if (e == null) {
                     callback(true, "登记成功，找到书会送到你的书架")
