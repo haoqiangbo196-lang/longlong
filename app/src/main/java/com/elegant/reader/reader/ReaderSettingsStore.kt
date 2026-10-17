@@ -29,7 +29,7 @@ class ReaderSettingsStore(private val context: Context) {
     val settingsFlow: Flow<ReaderSettings> = context.dataStore.data.map { prefs ->
         ReaderSettings(
             fontSizeSp = prefs[Keys.fontSize] ?: 18f,
-            lineSpacingExtraSp = prefs[Keys.lineSpacingExtra] ?: 8f,
+            lineSpacingExtraSp = prefs[Keys.lineSpacingExtra] ?: 6f,
             paragraphSpacing = prefs[Keys.paragraphSpacing] ?: 8f,
             pageMarginHorizontalDp = prefs[Keys.marginH] ?: 20f,
             pageMarginTopDp = prefs[Keys.marginTop] ?: 16f,
