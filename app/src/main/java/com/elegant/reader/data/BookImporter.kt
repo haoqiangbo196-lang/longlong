@@ -66,4 +66,31 @@ class BookImporter(
         }
         return null
     }
+
+    /**
+     * 从已下载的本地文件导入书籍（求书下载后调用）。
+     * 文件已在应用私有目录，无需再拷贝。
+     */
+    suspend fun importFromDownloadedFile(file: File, displayName: String): Book =
+        withContext(Dispatchers.IO) {
+            val extension = file.extension.lowercase()
+            if (extension !in setOf("txt", "epub")) {
+                throw IllegalArgumentException("仅支持 TXT 与 EPUB 格式")
+            }
+
+            val parsed: ParsedBook = BookParser.parse(file, displayName)
+
+            val book = Book(
+                title = parsed.title.ifBlank { displayName.substringBeforeLast('.') },
+                author = parsed.author,
+                filePath = file.absolutePath,
+                fileType = extension,
+                totalWords = parsed.totalChars.toLong(),
+                chapterCount = parsed.chapters.size,
+                coverPath = parsed.coverPath
+            )
+
+            val id = repository.addBook(book)
+            book.copy(id = id)
+        }
 }
