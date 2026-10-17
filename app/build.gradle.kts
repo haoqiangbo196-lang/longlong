@@ -75,5 +75,13 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.kotlinx.coroutines.android)
 
+    // Bmob 后端云（求书功能）
+    implementation("io.github.bmob:android-sdk:4.2.4")
+    implementation("io.reactivex.rxjava3:rxjava:3.1.9")
+    implementation("io.reactivex.rxjava3:rxandroid:3.0.2")
+    implementation("com.squareup.okhttp3:okhttp:4.8.1")
+    implementation("com.squareup.okio:okio:2.2.2")
+    implementation("com.google.code.gson:gson:2.8.5")
+
     debugImplementation(libs.androidx.ui.tooling)
 }
