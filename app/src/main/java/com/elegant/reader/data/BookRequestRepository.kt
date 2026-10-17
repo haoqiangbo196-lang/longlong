@@ -51,6 +51,7 @@ class BookRequestRepository(private val context: Context) {
 
     /**
      * 查询本设备的求书记录（按提交时间倒序）。
+     * 首次使用时云端表还不存在（错误码 101 / object not found），视为空列表静默处理。
      */
     fun queryMine(callback: (List<BookRequest>, String?) -> Unit) {
         val query = BmobQuery<BookRequest>()
@@ -61,6 +62,9 @@ class BookRequestRepository(private val context: Context) {
             override fun done(list: MutableList<BookRequest>?, e: BmobException?) {
                 if (e == null) {
                     callback(list ?: emptyList(), null)
+                } else if (e.errorCode == 101 || e.message?.contains("not found", ignoreCase = true) == true) {
+                    // 表尚不存在（首次使用），静默视为空
+                    callback(emptyList(), null)
                 } else {
                     callback(emptyList(), e.message ?: "查询失败")
                 }
