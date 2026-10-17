@@ -30,7 +30,7 @@
 
         <!-- Bmob SDK 必需的 ContentProvider -->
         <provider
-            android:name="cn.bmob.v3.BmobContentProvider"
+            android:name="cn.bmob.v3.util.BmobContentProvider"
             android:authorities="com.elegant.reader.BmobContentProvider"
             android:exported="false" />
 
